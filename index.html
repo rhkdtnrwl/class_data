@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>키보드 탐험대</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet"/>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      display: flex; flex-direction: column; align-items: center;
+      font-family: 'Noto Sans KR', sans-serif;
+      padding: 16px 8px 40px;
+    }
+    h1 { color: white; font-size: 26px; font-weight: 900; text-shadow: 0 2px 10px rgba(0,0,0,0.3); margin-bottom: 3px; }
+    .subtitle { color: rgba(255,255,255,0.85); font-size: 13px; margin-bottom: 10px; }
+
+    #text-display {
+      background: white; border-radius: 16px; padding: 12px 18px;
+      width: 100%; max-width: 1080px; min-height: 64px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2); border: 4px solid rgba(255,255,255,0.5);
+      margin-bottom: 10px; position: relative;
+    }
+    .label { font-size: 11px; color: #999; font-weight: 700; margin-bottom: 3px; }
+    #text-output {
+      font-size: 20px; font-weight: 700; color: #333;
+      min-height: 28px; letter-spacing: 2px; word-break: break-all; white-space: pre-wrap;
+    }
+    #cursor {
+      display: inline-block; width: 3px; height: 24px;
+      background: #667eea; margin-left: 2px; vertical-align: middle; animation: blink 1s infinite;
+    }
+    #clear-btn {
+      position: absolute; top: 10px; right: 10px;
+      background: #FF6B6B; color: white; border: none; border-radius: 10px;
+      padding: 5px 12px; cursor: pointer; font-size: 12px; font-weight: 700;
+      font-family: inherit; display: none;
+    }
+
+    #mode-toggle { display: flex; gap: 7px; margin-bottom: 8px; }
+    .mode-btn {
+      padding: 6px 16px; border-radius: 20px; border: 3px solid white;
+      font-size: 13px; font-weight: 900; cursor: pointer; font-family: inherit;
+      transition: all 0.2s; background: rgba(255,255,255,0.2); color: white;
+    }
+    .mode-btn.active { background: white; color: #667eea; }
+
+    #shift-notice {
+      background: rgba(255,220,50,0.2); border: 2px solid rgba(255,220,50,0.55);
+      border-radius: 10px; padding: 5px 14px; color: white;
+      font-size: 12px; font-weight: 700; margin-bottom: 10px; text-align: center;
+    }
+
+    /* ── 키보드 전체 컨테이너 ── */
+    #keyboard {
+      background: linear-gradient(145deg, #2c2c3e, #1a1a2e);
+      border-radius: 22px; padding: 16px 14px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+      width: 100%; max-width: 1080px;
+    }
+
+    .key-row {
+      display: flex; gap: 5px; margin-bottom: 6px; justify-content: flex-start;
+      width: 100%;
+    }
+    .key-row:last-child { margin-bottom: 0; }
+
+    /* ── 공통 키 ── */
+    .key {
+      height: 62px; border-radius: 10px; cursor: pointer;
+      font-family: 'Noto Sans KR', sans-serif; transition: all 0.1s ease;
+      border: 2px solid rgba(255,255,255,0.12);
+      background: linear-gradient(145deg, #3a3a5c, #2a2a4a);
+      box-shadow: 0 4px 0 #111, 0 5px 10px rgba(0,0,0,0.3);
+      user-select: none; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; padding: 2px 3px; overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    /* flex 키 (일반 행에서 늘어남) */
+    .key.flex1  { flex: 1; }
+    .key.flex16 { flex: 1.6; }
+    .key.flex22 { flex: 2.2; }
+
+    /* 고정폭 키 (화살표/한영/한자 등 px 지정) */
+    .key.w58  { width: 58px; }
+    .key.w62  { width: 62px; }
+    .key.w70  { width: 70px; }
+    .key.w80  { width: 80px; }
+    .key.w90  { width: 90px; }
+
+    /* 스페이스바: 나머지를 다 차지 */
+    .key.space-key { flex: 1; }
+
+    /* 키 내부 레이아웃 */
+    .key-top { display: flex; gap: 4px; align-items: center; justify-content: center; width: 100%; min-height: 13px; }
+    .key-bot { display: flex; gap: 4px; align-items: center; justify-content: center; width: 100%; }
+    .eng-top { font-size: 10px; font-weight: 900; color: #777; line-height: 1; }
+    .kor-top { font-size: 11px; font-weight: 900; color: #c8a000; line-height: 1; }
+    .eng-bot { font-size: 12px; font-weight: 900; color: #ccc; line-height: 1; }
+    .kor-bot { font-size: 13px; font-weight: 900; color: #FFD93D; line-height: 1; }
+
+    .key.colored .eng-top { color: rgba(0,0,0,0.4); }
+    .key.colored .kor-top { color: rgba(0,0,0,0.5); }
+    .key.colored .eng-bot { color: #1a1a2e; }
+    .key.colored .kor-bot { color: rgba(0,0,0,0.62); }
+
+    .fn-main { font-size: 11px; font-weight: 900; color: #ddd; line-height: 1.3; text-align: center; }
+    .fn-sub  { font-size: 9px;  font-weight: 700; color: #666; line-height: 1.2; text-align: center; }
+
+    /* 한/영·한자 초록 */
+    .key.hanym {
+      background: linear-gradient(145deg, #388E3Ccc, #1b5e20aa) !important;
+      border-color: #4CAF50 !important;
+      box-shadow: 0 4px 0 #1b5e20, 0 5px 10px rgba(0,0,0,0.3) !important;
+    }
+    .key.hanym .fn-main { color: #fff; font-size: 12px; }
+    .key.hanym .fn-sub  { color: rgba(255,255,255,0.65); }
+
+    /* 화살표 파랑 */
+    .key.arrow {
+      background: linear-gradient(145deg, #1565C0cc, #0d47a1aa) !important;
+      border-color: #1976D2 !important;
+      box-shadow: 0 4px 0 #0d47a1, 0 5px 10px rgba(0,0,0,0.3) !important;
+    }
+    .key.arrow .fn-main { color: #fff; font-size: 20px; line-height: 1; }
+    .key.arrow .fn-sub  { color: rgba(255,255,255,0.75); font-size: 10px; }
+
+    /* 화살표 키는 높이 절반 (위/아래 각각) */
+    .key.arrow-half { height: 29px; }
+
+    /* 화살표 키 묶음 컨테이너 (세로 배치) */
+    .arrow-cluster {
+      display: flex; flex-direction: column; gap: 4px;
+      flex-shrink: 0;
+    }
+    .arrow-top-row { display: flex; justify-content: center; }
+    .arrow-bot-row { display: flex; gap: 5px; }
+
+    .key:hover { filter: brightness(1.13); }
+    .key.pressed {
+      transform: translateY(3px) scale(0.95);
+      box-shadow: none !important; filter: brightness(1.5);
+    }
+    .key.pressed .eng-top,.key.pressed .kor-top,
+    .key.pressed .eng-bot,.key.pressed .kor-bot,
+    .key.pressed .fn-main,.key.pressed .fn-sub { color: white !important; }
+
+    /* ── 범례 ── */
+    #legend {
+      background: rgba(255,255,255,0.15); backdrop-filter: blur(10px);
+      border-radius: 16px; padding: 12px 18px; margin-top: 12px;
+      width: 100%; max-width: 1080px; border: 2px solid rgba(255,255,255,0.3);
+    }
+    .legend-title { color: white; font-weight: 900; font-size: 13px; margin-bottom: 8px; }
+    #legend-items { display: flex; flex-wrap: wrap; gap: 7px; }
+    .legend-item { display: flex; align-items: center; gap: 5px; }
+    .legend-dot { width: 18px; height: 18px; border-radius: 5px; border: 2px solid rgba(255,255,255,0.5); flex-shrink:0; }
+    .legend-item span { color: white; font-size: 12px; font-weight: 700; }
+
+    #key-info {
+      margin-top: 10px; background: rgba(255,255,255,0.93); border-radius: 14px;
+      padding: 9px 20px; text-align: center; font-size: 15px; font-weight: 900;
+      color: #4a4a6a; display: none; animation: fadeIn 0.2s ease;
+      max-width: 1080px; width: 100%;
+    }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  </style>
+</head>
+<body>
+
+<div style="text-align:center;margin-bottom:4px;">
+  <div style="font-size:34px;margin-bottom:4px;">⌨️</div>
+  <h1>키보드 탐험대</h1>
+  <p class="subtitle">키를 눌러보고 화면에 글자를 써봐요! 🎉</p>
+</div>
+
+<div id="mode-toggle">
+  <button class="mode-btn active" onclick="setMode('both')" id="btn-both">영문 + 한글</button>
+  <button class="mode-btn" onclick="setMode('eng')"  id="btn-eng">영문만</button>
+  <button class="mode-btn" onclick="setMode('kor')"  id="btn-kor">한글만</button>
+</div>
+
+<div id="shift-notice">
+  ⬆️ <strong>쉬프트(Shift)</strong> 키를 누르면 쌍자음(ㄲ ㄸ ㅃ ㅆ ㅉ)과 쌍모음(ㅒ ㅖ)을 쓸 수 있어요!
+</div>
+
+<div id="lang-badge" style="padding:7px 20px;border-radius:20px;margin-bottom:10px;font-size:14px;font-weight:900;color:white;background:rgba(21,101,192,0.9);box-shadow:0 3px 12px rgba(0,0,0,0.3);transition:background 0.3s;">🔤 영문 입력 중</div>
+
+<div id="text-display">
+  <div class="label">✏️ 내가 쓴 글자</div>
+  <div id="text-output"><span id="cursor"></span></div>
+  <button id="clear-btn" onclick="clearText()">지우기 🗑️</button>
+</div>
+
+<div id="keyboard">
+
+  <!-- ── 1행: 숫자 ── -->
+  <div class="key-row" id="row0"></div>
+
+  <!-- ── 2행: QWERTY ── -->
+  <div class="key-row" id="row1"></div>
+
+  <!-- ── 3행: ASDF ── -->
+  <div class="key-row" id="row2"></div>
+
+  <!-- ── 4행: ZXCV ── -->
+  <div class="key-row" id="row3"></div>
+
+  <!-- ── 5행: 스페이스 + 한영 + 화살표 ── -->
+  <div class="key-row" id="row4"></div>
+
+</div>
+
+<div id="legend">
+  <div class="legend-title">🖐️ 손가락 색깔 안내</div>
+  <div id="legend-items"></div>
+</div>
+<div id="key-info"></div>
+
+<script>
+/* ── 데이터 ── */
+const korNormal = {
+  q:"ㅂ",w:"ㅈ",e:"ㄷ",r:"ㄱ",t:"ㅅ",
+  y:"ㅛ",u:"ㅕ",i:"ㅑ",o:"ㅐ",p:"ㅔ",
+  a:"ㅁ",s:"ㄴ",d:"ㅇ",f:"ㄹ",g:"ㅎ",
+  h:"ㅗ",j:"ㅓ",k:"ㅏ",l:"ㅣ",
+  z:"ㅋ",x:"ㅌ",c:"ㅊ",v:"ㅍ",b:"ㅠ",n:"ㅜ",m:"ㅡ"
+};
+const korShift = { q:"ㅃ",w:"ㅉ",e:"ㄸ",r:"ㄲ",t:"ㅆ",o:"ㅒ",p:"ㅖ" };
+const engShift = {
+  "1":"!","2":"@","3":"#","4":"$","5":"%",
+  "6":"^","7":"&","8":"*","9":"(","0":")",
+  "-":"_","=":"+","[":"{","]":"}","\\":"|",
+  ";":":","'":"\"",",":"<",".":">","/":"?"
+};
+const fingerMap = {
+  "1":"#FF6B6B","2":"#FF8E53","3":"#FFA62B","4":"#FFD93D","5":"#FFD93D",
+  "6":"#6BCB77","7":"#4D96FF","8":"#C77DFF","9":"#FF6BAE","0":"#FF6B6B",
+  "-":"#FF6B6B","=":"#FF6B6B",
+  "q":"#FF6B6B","a":"#FF6B6B","z":"#FF6B6B",
+  "w":"#FF8E53","s":"#FF8E53","x":"#FF8E53",
+  "e":"#FFA62B","d":"#FFA62B","c":"#FFA62B",
+  "r":"#FFD93D","f":"#FFD93D","v":"#FFD93D",
+  "t":"#FFD93D","g":"#FFD93D","b":"#FFD93D",
+  "y":"#6BCB77","h":"#6BCB77","n":"#6BCB77",
+  "u":"#4D96FF","j":"#4D96FF","m":"#4D96FF",
+  "i":"#C77DFF","k":"#C77DFF",",":"#C77DFF",
+  "o":"#FF6BAE","l":"#FF6BAE",".":"#FF6BAE",
+  "p":"#FF6B6B",";":"#FF6B6B","/":"#FF6B6B",
+  " ":"#A8EDEA"
+};
+const fingerNames = {
+  "#FF6B6B":"왼손 새끼손가락[왼손 5번]","#FF8E53":"왼손 약손가락[왼손 4번]",
+  "#FFA62B":"왼손 중간손가락[왼손 3번]","#FFD93D":"왼손 검지[왼손 2번]",
+  "#6BCB77":"오른손 검지[오른손 2번]","#4D96FF":"오른손 중간손가락[오른손 3번]",
+  "#C77DFF":"오른손 약손가락[오른손 4번]","#FF6BAE":"오른손 새끼손가락[오른손 5번]",
+  "#A8EDEA":"엄지손가락[1번]"
+};
+
+/* ── 레이아웃 정의 ──
+   type: 'normal' | 'fn' | 'space' | 'hanym' | 'arrow-cluster'
+   w: flex class or fixed px class
+*/
+const rowDefs = [
+  // 1행
+  [
+    {k:"`",  e:"`",  shift:"~",  w:"flex1"},
+    {k:"1",e:"1",w:"flex1"},{k:"2",e:"2",w:"flex1"},{k:"3",e:"3",w:"flex1"},
+    {k:"4",e:"4",w:"flex1"},{k:"5",e:"5",w:"flex1"},{k:"6",e:"6",w:"flex1"},
+    {k:"7",e:"7",w:"flex1"},{k:"8",e:"8",w:"flex1"},{k:"9",e:"9",w:"flex1"},
+    {k:"0",e:"0",w:"flex1"},{k:"-",e:"-",w:"flex1"},{k:"=",e:"=",w:"flex1"},
+    {type:"fn",k:"Delete",fnMain:"뒷글자지우기",fnSub:"(Delete)",w:"flex16"},
+    {type:"fn",k:"Backspace",fnMain:"⌫ 앞글자지우기",fnSub:"(Backspace)",w:"flex16"}
+  ],
+  // 2행
+  [
+    {type:"fn",k:"Tab",fnMain:"탭",fnSub:"(Tab) ⇥",w:"flex16"},
+    {k:"q",e:"Q",w:"flex1"},{k:"w",e:"W",w:"flex1"},{k:"e",e:"E",w:"flex1"},
+    {k:"r",e:"R",w:"flex1"},{k:"t",e:"T",w:"flex1"},{k:"y",e:"Y",w:"flex1"},
+    {k:"u",e:"U",w:"flex1"},{k:"i",e:"I",w:"flex1"},{k:"o",e:"O",w:"flex1"},
+    {k:"p",e:"P",w:"flex1"},{k:"[",e:"[",w:"flex1"},{k:"]",e:"]",w:"flex1"},
+    {k:"\\",e:"\\",w:"flex1"}
+  ],
+  // 3행
+  [
+    {type:"fn",k:"CapsLock",fnMain:"대소문자",fnSub:"(Caps Lock)",w:"flex16"},
+    {k:"a",e:"A",w:"flex1"},{k:"s",e:"S",w:"flex1"},{k:"d",e:"D",w:"flex1"},
+    {k:"f",e:"F",w:"flex1"},{k:"g",e:"G",w:"flex1"},{k:"h",e:"H",w:"flex1"},
+    {k:"j",e:"J",w:"flex1"},{k:"k",e:"K",w:"flex1"},{k:"l",e:"L",w:"flex1"},
+    {k:";",e:";",w:"flex1"},{k:"'",e:"'",w:"flex1"},
+    {type:"fn",k:"Enter",fnMain:"↵ 엔터",fnSub:"(Enter)",w:"flex16"}
+  ],
+  // 4행
+  [
+    {type:"fn",k:"Shift",fnMain:"⬆ 쉬프트",fnSub:"(Shift)",w:"flex22"},
+    {k:"z",e:"Z",w:"flex1"},{k:"x",e:"X",w:"flex1"},{k:"c",e:"C",w:"flex1"},
+    {k:"v",e:"V",w:"flex1"},{k:"b",e:"B",w:"flex1"},{k:"n",e:"N",w:"flex1"},
+    {k:"m",e:"M",w:"flex1"},{k:",",e:",",w:"flex1"},{k:".",e:".",w:"flex1"},
+    {k:"/",e:"/",w:"flex1"},
+    {type:"fn",k:"Shift",fnMain:"⬆ 쉬프트",fnSub:"(Shift)",w:"flex22"}
+  ],
+  // 5행: Ctrl Alt 스페이스 | 한영 한자 ▲ / ◀▼▶
+  [
+    {type:"fn",k:"Control",fnMain:"컨트롤",fnSub:"(Ctrl)",w:"w80"},
+    {type:"fn",k:"Alt",    fnMain:"알트",  fnSub:"(Alt)", w:"w70"},
+    {type:"space",k:" "},   // 스페이스바 (flex:1)
+    // 한영·한자·화살표는 특수 처리 → JS에서 직접 삽입
+    {type:"arrow-cluster"}
+  ]
+];
+
+let displayMode = "both";
+function setMode(mode) {
+  displayMode = mode;
+  ["both","eng","kor"].forEach(m =>
+    document.getElementById("btn-"+m).classList.toggle("active", m===mode)
+  );
+  buildKeyboard();
+}
+
+/* ── 일반/fn 키 버튼 생성 ── */
+function makeKey(keyObj) {
+  const btn = document.createElement("button");
+  const lk  = (keyObj.k||"").toLowerCase();
+  btn.className = "key " + (keyObj.w||"flex1");
+  btn.dataset.key = keyObj.k;
+
+  const color = fingerMap[lk] || fingerMap[keyObj.k];
+  if (color && keyObj.type !== "fn" && keyObj.type !== "space") {
+    btn.classList.add("colored");
+    btn.style.background  = `linear-gradient(145deg, ${color}e8, ${color}aa)`;
+    btn.style.borderColor = color;
+    btn.style.boxShadow   = `0 4px 0 ${color}55, 0 5px 10px rgba(0,0,0,0.3)`;
+  }
+
+  if (keyObj.type === "fn") {
+    const m = document.createElement("div"); m.className="fn-main"; m.textContent=keyObj.fnMain;
+    const s = document.createElement("div"); s.className="fn-sub";  s.textContent=keyObj.fnSub;
+    btn.appendChild(m); btn.appendChild(s);
+
+  } else if (keyObj.type === "space") {
+    btn.classList.add("space-key");
+    const m = document.createElement("div"); m.className="fn-main"; m.textContent="스페이스";
+    const s = document.createElement("div"); s.className="fn-sub";  s.textContent="(Space Bar)";
+    btn.appendChild(m); btn.appendChild(s);
+    // 스페이스도 색 지정
+    const sc = fingerMap[" "];
+    btn.style.background  = `linear-gradient(145deg, ${sc}cc, ${sc}88)`;
+    btn.style.borderColor = sc;
+    btn.style.boxShadow   = `0 4px 0 ${sc}66, 0 5px 10px rgba(0,0,0,0.3)`;
+    btn.querySelector(".fn-main").style.color = "#1a1a2e";
+    btn.querySelector(".fn-sub").style.color  = "rgba(0,0,0,0.5)";
+
+  } else {
+    // 일반 글자 키
+    const eShift = engShift[lk] || keyObj.shift || "";
+    const kShift = korShift[lk] || "";
+    const kNorm  = korNormal[lk] || "";
+    const eNorm  = keyObj.e || lk.toUpperCase();
+
+    const topDiv = document.createElement("div"); topDiv.className="key-top";
+    const botDiv = document.createElement("div"); botDiv.className="key-bot";
+
+    if (displayMode === "both") {
+      if (eShift) { const s=document.createElement("span"); s.className="eng-top"; s.textContent=eShift; topDiv.appendChild(s); }
+      if (kShift) { const s=document.createElement("span"); s.className="kor-top"; s.textContent=kShift; topDiv.appendChild(s); }
+      const eb=document.createElement("span"); eb.className="eng-bot"; eb.textContent=eNorm; botDiv.appendChild(eb);
+      if (kNorm) { const kb2=document.createElement("span"); kb2.className="kor-bot"; kb2.textContent=kNorm; botDiv.appendChild(kb2); }
+    } else if (displayMode === "eng") {
+      if (eShift) { const s=document.createElement("span"); s.className="eng-top"; s.textContent=eShift; topDiv.appendChild(s); }
+      const eb=document.createElement("span"); eb.className="eng-bot"; eb.style.fontSize="16px"; eb.textContent=eNorm; botDiv.appendChild(eb);
+    } else {
+      if (kShift) { const s=document.createElement("span"); s.className="kor-top"; s.style.fontSize="13px"; s.textContent=kShift; topDiv.appendChild(s); }
+      if (kNorm) {
+        const kb2=document.createElement("span"); kb2.className="kor-bot"; kb2.style.fontSize="20px"; kb2.textContent=kNorm; botDiv.appendChild(kb2);
+      } else {
+        const eb=document.createElement("span"); eb.className="eng-bot"; eb.style.fontSize="15px"; eb.textContent=eNorm; botDiv.appendChild(eb);
+      }
+    }
+    if (topDiv.children.length) btn.appendChild(topDiv);
+    btn.appendChild(botDiv);
+  }
+
+  btn.addEventListener("click", () => pressKey(keyObj.k));
+  return btn;
+}
+
+/* ── 화살표 클러스터 생성 ──
+   [ 한영 | 한자 ]
+   [   ▲  ]
+   [ ◀ ▼ ▶ ]
+*/
+function makeArrowCluster() {
+  const wrap = document.createElement("div");
+  wrap.className = "arrow-cluster";
+
+  // 한영 + 한자 행
+  const row1 = document.createElement("div");
+  row1.style.cssText = "display:flex;gap:5px;";
+
+  const hanym = document.createElement("button");
+  hanym.className = "key w62 hanym"; hanym.dataset.key = "HanEng";
+  hanym.innerHTML = `<div class="fn-main">한/영</div><div class="fn-sub">(전환)</div>`;
+  hanym.addEventListener("click", () => pressKey("HanEng"));
+
+  const hanja = document.createElement("button");
+  hanja.className = "key w62 hanym"; hanja.dataset.key = "Hanja";
+  hanja.innerHTML = `<div class="fn-main">한자</div><div class="fn-sub">(변환)</div>`;
+  hanja.addEventListener("click", () => pressKey("Hanja"));
+
+  row1.appendChild(hanym); row1.appendChild(hanja);
+
+  // ▲ 행
+  const row2 = document.createElement("div");
+  row2.style.cssText = "display:flex;justify-content:center;gap:5px;";
+  // 빈 자리 맞추기용 spacer
+  const sp = document.createElement("div"); sp.style.cssText = "width:62px;height:29px;flex-shrink:0;";
+
+  const up = document.createElement("button");
+  up.className = "key w62 arrow arrow-half"; up.dataset.key = "ArrowUp";
+  up.innerHTML = `<div class="fn-main" style="font-size:16px;">▲</div>`;
+  up.addEventListener("click", () => pressKey("ArrowUp"));
+
+  // 오른쪽 빈칸
+  const sp2 = document.createElement("div"); sp2.style.cssText = "width:0;height:29px;flex-shrink:0;";
+  row2.appendChild(sp); row2.appendChild(up); row2.appendChild(sp2);
+
+  // ◀ ▼ ▶ 행
+  const row3 = document.createElement("div");
+  row3.style.cssText = "display:flex;gap:5px;";
+
+  const left = document.createElement("button");
+  left.className = "key w62 arrow arrow-half"; left.dataset.key = "ArrowLeft";
+  left.innerHTML = `<div class="fn-main" style="font-size:16px;">◀</div>`;
+  left.addEventListener("click", () => pressKey("ArrowLeft"));
+
+  const down = document.createElement("button");
+  down.className = "key w62 arrow arrow-half"; down.dataset.key = "ArrowDown";
+  down.innerHTML = `<div class="fn-main" style="font-size:16px;">▼</div>`;
+  down.addEventListener("click", () => pressKey("ArrowDown"));
+
+  const right = document.createElement("button");
+  right.className = "key w62 arrow arrow-half"; right.dataset.key = "ArrowRight";
+  right.innerHTML = `<div class="fn-main" style="font-size:16px;">▶</div>`;
+  right.addEventListener("click", () => pressKey("ArrowRight"));
+
+  row3.appendChild(left); row3.appendChild(down); row3.appendChild(right);
+
+  wrap.appendChild(row1); wrap.appendChild(row2); wrap.appendChild(row3);
+  return wrap;
+}
+
+/* ── 키보드 빌드 ── */
+function buildKeyboard() {
+  for (let i = 0; i < 5; i++) {
+    const rowEl = document.getElementById("row" + i);
+    rowEl.innerHTML = "";
+    rowDefs[i].forEach(keyObj => {
+      if (keyObj.type === "arrow-cluster") {
+        rowEl.appendChild(makeArrowCluster());
+      } else {
+        rowEl.appendChild(makeKey(keyObj));
+      }
+    });
+  }
+}
+
+/* ── 범례 ── */
+const legendEl = document.getElementById("legend-items");
+Object.entries(fingerNames).forEach(([color, name]) => {
+  const item = document.createElement("div"); item.className="legend-item";
+  item.innerHTML = `<div class="legend-dot" style="background:${color}"></div><span>${name}</span>`;
+  legendEl.appendChild(item);
+});
+
+/* ════════════════════════════════════════
+   한글 조합 엔진 (두벌식)
+   ════════════════════════════════════════ */
+const CHO  = ["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
+const JUNG = ["ㅏ","ㅐ","ㅑ","ㅒ","ㅓ","ㅔ","ㅕ","ㅖ","ㅗ","ㅘ","ㅙ","ㅚ","ㅛ","ㅜ","ㅝ","ㅞ","ㅟ","ㅠ","ㅡ","ㅢ","ㅣ"];
+const JONG = ["","ㄱ","ㄲ","ㄳ","ㄴ","ㄵ","ㄶ","ㄷ","ㄹ","ㄺ","ㄻ","ㄼ","ㄽ","ㄾ","ㄿ","ㅀ","ㅁ","ㅂ","ㅄ","ㅅ","ㅆ","ㅇ","ㅈ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
+
+// 초성 인덱스
+const choIdx  = (c) => CHO.indexOf(c);
+// 중성 인덱스
+const jungIdx = (c) => JUNG.indexOf(c);
+// 종성 인덱스
+const jongIdx = (c) => JONG.indexOf(c);
+
+// 음절 조합
+function syllable(cho, jung, jong) {
+  return String.fromCharCode(0xAC00 + choIdx(cho)*21*28 + jungIdx(jung)*28 + jongIdx(jong));
+}
+
+// 모음 합성표 (ㅗ/ㅜ/ㅡ + 모음)
+const vowelCombo = {
+  "ㅗ+ㅏ":"ㅘ","ㅗ+ㅐ":"ㅙ","ㅗ+ㅣ":"ㅚ",
+  "ㅜ+ㅓ":"ㅝ","ㅜ+ㅔ":"ㅞ","ㅜ+ㅣ":"ㅟ",
+  "ㅡ+ㅣ":"ㅢ"
+};
+// 겹받침 합성표
+const jongCombo = {
+  "ㄱ+ㅅ":"ㄳ","ㄴ+ㅈ":"ㄵ","ㄴ+ㅎ":"ㄶ",
+  "ㄹ+ㄱ":"ㄺ","ㄹ+ㅁ":"ㄻ","ㄹ+ㅂ":"ㄼ",
+  "ㄹ+ㅅ":"ㄽ","ㄹ+ㅌ":"ㄾ","ㄹ+ㅍ":"ㄿ",
+  "ㄹ+ㅎ":"ㅀ","ㅂ+ㅅ":"ㅄ"
+};
+// 겹받침 → [앞, 뒤] 분리
+const jongSplit = {
+  "ㄳ":["ㄱ","ㅅ"],"ㄵ":["ㄴ","ㅈ"],"ㄶ":["ㄴ","ㅎ"],
+  "ㄺ":["ㄹ","ㄱ"],"ㄻ":["ㄹ","ㅁ"],"ㄼ":["ㄹ","ㅂ"],
+  "ㄽ":["ㄹ","ㅅ"],"ㄾ":["ㄹ","ㅌ"],"ㄿ":["ㄹ","ㅍ"],
+  "ㅀ":["ㄹ","ㅎ"],"ㅄ":["ㅂ","ㅅ"]
+};
+
+// 조합 상태
+let hanMode = false;   // false=영문, true=한글
+let shiftOn = false;
+
+// 조합 중인 음절 상태
+let cur = { cho:"", jung:"", jong:"" };  // 현재 조합 중
+let committed = "";                       // 확정된 문자열
+
+function isCho(c)  { return choIdx(c)  >= 0; }
+function isJung(c) { return jungIdx(c) >= 0; }
+function isJong(c) { return jongIdx(c) >= 0; }
+
+function getCurChar() {
+  if (!cur.cho) return cur.jung || "";          // 단독 모음
+  if (!cur.jung) return cur.cho;                // 단독 자음
+  return syllable(cur.cho, cur.jung, cur.jong); // 음절
+}
+
+function commitCur() {
+  committed += getCurChar();
+  cur = { cho:"", jung:"", jong:"" };
+}
+
+function inputKor(jamo) {
+  // ── 자음 입력 ──
+  if (isCho(jamo) && !isJung(jamo)) {
+    if (!cur.cho) {
+      // 아무것도 없으면 초성 대기
+      cur.cho = jamo;
+    } else if (!cur.jung) {
+      // 초성만 있을 때 → 이전 자음 확정, 새 초성 대기
+      commitCur();
+      cur.cho = jamo;
+    } else if (!cur.jong) {
+      // 초성+중성: 종성으로 붙이기 (받침 가능 여부 확인)
+      if (isJong(jamo)) {
+        cur.jong = jamo;
+      } else {
+        commitCur(); cur.cho = jamo;
+      }
+    } else {
+      // 이미 받침 있음: 겹받침 시도
+      const combo = jongCombo[cur.jong+"+"+jamo];
+      if (combo) {
+        cur.jong = combo;
+      } else {
+        commitCur(); cur.cho = jamo;
+      }
+    }
+    return;
+  }
+
+  // ── 모음 입력 ──
+  if (isJung(jamo)) {
+    // 복합 모음 시도 (ㅗ+ㅏ 등)
+    if (!cur.cho && !cur.jung && committed.length > 0) {
+      // 바로 앞 글자와 모음 합성 시도
+      const prev = committed[committed.length-1];
+      const code = prev.charCodeAt(0);
+      if (code >= 0xAC00 && code <= 0xD7A3) {
+        const offset = code - 0xAC00;
+        const prevJong = JONG[offset % 28];
+        if (!prevJong) {
+          // 받침 없는 음절 → 분리해서 현재 초성으로
+          const prevCho  = CHO [Math.floor(offset/28/21)];
+          const prevJung = JUNG[Math.floor(offset/28)%21];
+          // 복합모음 시도
+          const combo = vowelCombo[prevJung+"+"+jamo];
+          if (combo && jungIdx(combo) >= 0) {
+            committed = committed.slice(0,-1);
+            cur.cho  = prevCho;
+            cur.jung = combo;
+            cur.jong = "";
+            return;
+          }
+        }
+      }
+    }
+
+    if (!cur.cho) {
+      // 초성 없이 모음만 → 단독 모음
+      if (cur.jung) {
+        const combo = vowelCombo[cur.jung+"+"+jamo];
+        if (combo) { cur.jung = combo; }
+        else { commitCur(); cur.jung = jamo; }
+      } else {
+        cur.jung = jamo;
+      }
+    } else if (!cur.jung) {
+      cur.jung = jamo;
+    } else if (!cur.jong) {
+      // 초성+중성+새 모음 → 복합모음 시도
+      const combo = vowelCombo[cur.jung+"+"+jamo];
+      if (combo) { cur.jung = combo; }
+      else { commitCur(); cur.jung = jamo; }
+    } else {
+      // 받침 있음 + 모음 → 받침을 다음 초성으로
+      const split = jongSplit[cur.jong];
+      const nextCho = split ? split[1] : cur.jong;
+      const keepJong = split ? split[0] : "";
+      const prevSyl = syllable(cur.cho, cur.jung, keepJong);
+      committed += prevSyl;
+      cur = { cho: nextCho, jung: jamo, jong: "" };
+    }
+  }
+}
+
+function backspaceKor() {
+  if (cur.jong) {
+    // 받침 → 겹받침 분리 or 그냥 제거
+    const split = jongSplit[cur.jong];
+    cur.jong = split ? split[0] : "";
+  } else if (cur.jung) {
+    if (cur.cho) cur.jung = "";
+    else cur.jung = "";
+  } else if (cur.cho) {
+    cur.cho = "";
+  } else if (committed.length > 0) {
+    // 확정된 마지막 글자 되살리기
+    const last = committed[committed.length-1];
+    committed = committed.slice(0,-1);
+    const code = last.charCodeAt(0);
+    if (code >= 0xAC00 && code <= 0xD7A3) {
+      const offset = code - 0xAC00;
+      cur.cho  = CHO [Math.floor(offset/28/21)];
+      cur.jung = JUNG[Math.floor(offset/28)%21];
+      cur.jong = JONG[offset%28];
+    } else {
+      cur.cho = last; cur.jung = ""; cur.jong = "";
+    }
+  }
+}
+
+/* ════════════════════════════════════════
+   텍스트 출력 & UI
+   ════════════════════════════════════════ */
+let typedEng = "";   // 영문 모드 버퍼
+
+const output   = document.getElementById("text-output");
+const cursorEl = document.getElementById("cursor");
+const clearBtn = document.getElementById("clear-btn");
+const keyInfo  = document.getElementById("key-info");
+
+function getFullText() {
+  if (hanMode) return committed + getCurChar();
+  return typedEng;
+}
+
+function renderText() {
+  const txt = getFullText();
+  output.textContent = txt;
+  output.appendChild(cursorEl);
+  clearBtn.style.display = txt ? "block" : "none";
+}
+
+function clearText() {
+  typedEng = ""; committed = ""; cur = {cho:"",jung:"",jong:""};
+  renderText();
+}
+
+/* 한영 전환 표시 배지 */
+function updateModeBadge() {
+  const badge = document.getElementById("lang-badge");
+  if (hanMode) {
+    badge.textContent = "🇰🇷 한글 입력 중";
+    badge.style.background = "rgba(56,142,60,0.9)";
+  } else {
+    badge.textContent = "🔤 영문 입력 중";
+    badge.style.background = "rgba(21,101,192,0.9)";
+  }
+}
+
+function showKeyInfo(key) {
+  const lk = key.toLowerCase();
+  const kN = korNormal[lk]||"", kS = korShift[lk]||"";
+  const msgs = {
+    " ":          "스페이스 키 눌림! 👏 칸을 띄울 때 써요.",
+    "Delete":     "⌦ 뒷글자지우기 키 눌림! 커서 뒤의 글자를 지울 때 써요.",
+    "Backspace":  "⌫ 앞글자지우기 키 눌림! 커서 앞의 글자를 지울 때 써요.",
+    "Enter":      "↵ 엔터 키 눌림! 줄을 바꿀 때 써요.",
+    "Tab":        "탭(Tab) 키 눌림! 여러 칸을 한번에 띄울 때 써요.",
+    "CapsLock":   "대소문자 전환(Caps Lock) 키 눌림!",
+    "Shift":      "⬆ 쉬프트(Shift) 키! 쌍자음·쌍모음, 대문자, 특수문자를 쓸 때 같이 눌러요.",
+    "Control":    "컨트롤(Ctrl) 키 눌림! 다른 키와 함께 사용해요.",
+    "Alt":        "알트(Alt) 키 눌림! 다른 키와 함께 사용해요.",
+    "HanEng":     hanMode ? "🔤 영문으로 전환됐어요!" : "🇰🇷 한글로 전환됐어요!",
+    "Hanja":      "한자 변환 키 눌림! 한글을 한자로 바꿀 때 써요.",
+    "ArrowUp":    "▲ 위쪽 화살표! 커서를 위로 움직여요.",
+    "ArrowDown":  "▼ 아래쪽 화살표! 커서를 아래로 움직여요.",
+    "ArrowLeft":  "◀ 왼쪽 화살표! 커서를 왼쪽으로 움직여요.",
+    "ArrowRight": "▶ 오른쪽 화살표! 커서를 오른쪽으로 움직여요.",
+  };
+  let msg = msgs[key] ||
+    (kN ? `"${key.toUpperCase()}" 키 → 기본: "${kN}"${kS?" / 쉬프트: \""+kS+"\"":""}  🎉`
+        : `"${key.toUpperCase()}" 키 눌림! 🎉`);
+
+  keyInfo.textContent = msg;
+  keyInfo.style.display = "block";
+  keyInfo.style.animation = "none";
+  requestAnimationFrame(() => keyInfo.style.animation = "fadeIn 0.2s ease");
+}
+
+function pressKey(key) {
+  // 키 누름 애니메이션
+  document.querySelectorAll(".key").forEach(btn => {
+    if (btn.dataset.key === key) {
+      btn.classList.add("pressed");
+      setTimeout(() => btn.classList.remove("pressed"), 180);
+    }
+  });
+
+  const ignore = ["Shift","Control","Alt","CapsLock",
+                  "ArrowUp","ArrowDown","ArrowLeft","ArrowRight"];
+
+  if (key === "HanEng") {
+    // 조합 중인 글자 확정 후 전환
+    if (hanMode) { commitCur(); }
+    hanMode = !hanMode;
+    updateModeBadge();
+    renderText();
+    showKeyInfo("HanEng");
+    return;
+  }
+
+  if (key === "Delete") {
+    showKeyInfo(key); return;
+  }
+  if (key === "Backspace") {
+    if (hanMode) { backspaceKor(); }
+    else { typedEng = typedEng.slice(0,-1); }
+    renderText(); showKeyInfo(key); return;
+  }
+  if (key === "Enter") {
+    if (hanMode) { commitCur(); committed += "\n"; }
+    else { typedEng += "\n"; }
+    renderText(); showKeyInfo(key); return;
+  }
+  if (key === " ") {
+    if (hanMode) { commitCur(); committed += " "; }
+    else { typedEng += " "; }
+    renderText(); showKeyInfo(key); return;
+  }
+  if (key === "Tab") {
+    if (hanMode) { commitCur(); committed += "  "; }
+    else { typedEng += "  "; }
+    renderText(); showKeyInfo(key); return;
+  }
+  if (ignore.includes(key) || key === "Hanja") {
+    showKeyInfo(key); return;
+  }
+
+  // 일반 문자
+  const lk = key.toLowerCase();
+  if (hanMode) {
+    const kChar = shiftOn ? korShift[lk] : korNormal[lk];
+    if (kChar) {
+      inputKor(kChar);
+    } else {
+      // 한글 모드지만 한글 없는 키 (숫자, 기호 등) → 확정 후 그대로
+      commitCur();
+      committed += shiftOn ? (engShift[lk] || key.toUpperCase()) : key;
+    }
+  } else {
+    typedEng += shiftOn ? (engShift[lk] || key.toUpperCase()) : key.toUpperCase();
+  }
+  renderText(); showKeyInfo(key);
+}
+
+document.addEventListener("keydown", e => {
+  if (["F5","F11","F12"].includes(e.key)) return;
+  if (e.key === "Shift") { shiftOn = true; return; }
+  e.preventDefault();
+  const k = e.key===" " ? " "
+          : e.key==="HangulMode" ? "HanEng"
+          : e.key;
+  pressKey(k);
+});
+document.addEventListener("keyup", e => {
+  if (e.key === "Shift") shiftOn = false;
+});
+
+buildKeyboard();
+renderText();
+updateModeBadge();
+</script>
+</body>
+</html>
