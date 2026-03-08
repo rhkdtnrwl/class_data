@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 친구를 만나요! 🤖</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --p1: #FF6B35;
+  --p2: #FFD93D;
+  --p3: #6BCB77;
+  --p4: #4D96FF;
+  --p5: #FF6584;
+  --dark: #1A1A2E;
+  --darker: #0F0F1E;
+  --text: #FFF8F0;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Nanum Gothic', sans-serif;
+  background: var(--darker);
+  color: var(--text);
+  overflow: hidden;
+  height: 100vh; width: 100vw;
+}
+
+/* ── 배경 별 ── */
+#bg-canvas {
+  position:fixed; top:0; left:0;
+  width:100%; height:100%; z-index:0; pointer-events:none;
+}
+
+/* ── 슬라이드 ── */
+#deck {
+  position:relative; z-index:1;
+  width:100vw; height:100vh; overflow:hidden;
+}
+.slide {
+  position:absolute; inset:0;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:36px 56px;
+  opacity:0; pointer-events:none;
+  transition: opacity .45s ease, transform .45s ease;
+  transform: translateY(28px);
+}
+.slide.active { opacity:1; pointer-events:all; transform:translateY(0); }
+.slide.exit   { opacity:0; transform:translateY(-28px); }
+
+/* ── NAV ── */
+#nav {
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+  z-index:100;
+  display:flex; gap:10px; align-items:center;
+  background:rgba(255,255,255,0.09);
+  backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,0.15);
+  border-radius:50px; padding:10px 20px;
+}
+#nav button {
+  background:none; border:none; cursor:pointer;
+  color:rgba(255,255,255,0.5); font-size:22px;
+  transition:all .2s; padding:4px 8px; border-radius:8px;
+}
+#nav button:hover { color:white; background:rgba(255,255,255,0.12); }
+#slide-counter {
+  font-family:'Jua',sans-serif;
+  font-size:15px; color:rgba(255,255,255,0.55);
+  min-width:52px; text-align:center;
+}
+.dot-row { display:flex; gap:6px; align-items:center; }
+.dot {
+  width:8px; height:8px; border-radius:50%;
+  background:rgba(255,255,255,0.2); cursor:pointer; transition:all .3s;
+}
+.dot.on { background:var(--p3); width:22px; border-radius:4px; }
+
+/* ── 배지 ── */
+.slide-badge {
+  position:absolute; top:24px; right:32px;
+  font-size:13px; font-weight:800; color:rgba(255,255,255,0.25);
+  letter-spacing:2px;
+}
+.key-hint {
+  position:fixed; top:20px; right:24px; z-index:100;
+  font-size:12px; color:rgba(255,255,255,0.2);
+  font-weight:800; letter-spacing:1px;
+}
+
+/* ── 공통 제목 ── */
+.slide-title {
+  font-family:'Jua',sans-serif;
+  font-size:clamp(28px,4.5vw,52px);
+  text-align:center; margin-bottom:6px;
+  animation:fadeUp .5s ease .1s both;
+}
+.slide-sub {
+  font-size:17px; color:rgba(255,255,255,0.5);
+  text-align:center; margin-bottom:4px;
+  animation:fadeUp .5s ease .2s both;
+}
+.center { text-align:center; }
+
+/* ── 카드 ── */
+.card {
+  background:rgba(255,255,255,0.07);
+  border:1.5px solid rgba(255,255,255,0.1);
+  border-radius:24px; padding:24px 28px;
+  margin-bottom:18px;
+}
+.card-title {
+  font-family:'Jua',sans-serif; font-size:20px;
+  margin-bottom:16px; display:flex; align-items:center; gap:8px;
+}
+
+/* ════════════
+   SLIDE 0 - 영상
+════════════ */
+.s0-bg { background: radial-gradient(ellipse at 40% 60%, #1A0D3D 0%, #0F0F1E 65%); }
+.vid-title {
+  font-family:'Jua',sans-serif;
+  font-size:clamp(26px,4vw,46px);
+  text-align:center; margin-bottom:20px;
+  background:linear-gradient(135deg,#fff,#FFD93D,#FF6B35);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+  animation:fadeUp .5s ease .15s both;
+}
+
+/* ════════════
+   SLIDE 1 - 타이틀
+════════════ */
+.s1-bg {
+  background: radial-gradient(ellipse at 30% 50%, #2D1A00 0%, #0F0F1E 60%),
+              radial-gradient(ellipse at 75% 25%, #1A002D20 0%, transparent 50%);
+}
+.main-emoji {
+  font-size:90px; display:block; margin-bottom:14px;
+  animation:bounce 2.5s ease-in-out infinite, fadeUp .5s ease both;
+}
+.main-title {
+  font-family:'Jua',sans-serif;
+  font-size:clamp(46px,8vw,90px);
+  line-height:1.1; text-align:center;
+  background:linear-gradient(135deg,#FFD93D 0%,#FF6B35 50%,#FF6584 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+  animation:fadeUp .5s ease .2s both;
+  margin-bottom:14px;
+  filter:drop-shadow(0 0 18px rgba(255,107,53,0.4));
+}
+.main-sub {
+  font-size:20px; color:rgba(255,255,255,0.65);
+  text-align:center; line-height:1.8;
+  animation:fadeUp .5s ease .4s both;
+}
+.chip-row { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:24px; animation:fadeUp .5s ease .6s both; }
+.chip {
+  background:rgba(255,255,255,0.1);
+  border:1.5px solid rgba(255,255,255,0.2);
+  border-radius:50px; padding:8px 22px;
+  font-family:'Jua',sans-serif; font-size:16px;
+}
+
+/* ════════════
+   SLIDE 2 - AI란?
+════════════ */
+.s2-bg { background:radial-gradient(ellipse at 65% 35%, #001A3D 0%, #0F0F1E 60%); }
+.ai-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; width:100%; max-width:820px; margin-top:20px; }
+.ai-card {
+  border-radius:22px; padding:26px 18px; text-align:center;
+  transition:all .3s; cursor:default; animation:scaleIn .5s ease both;
+}
+.ai-card:hover { transform:translateY(-8px) scale(1.04); }
+.ai-card.c1 { background:rgba(255,107,53,0.15); border:2px solid rgba(255,107,53,0.4); animation-delay:.1s; }
+.ai-card.c2 { background:rgba(75,150,255,0.15); border:2px solid rgba(75,150,255,0.4); animation-delay:.2s; }
+.ai-card.c3 { background:rgba(107,203,119,0.15); border:2px solid rgba(107,203,119,0.4); animation-delay:.3s; }
+.ai-card.c4 { background:rgba(255,101,132,0.15); border:2px solid rgba(255,101,132,0.4); animation-delay:.4s; }
+.ai-card.c5 { background:rgba(255,217,61,0.12); border:2px solid rgba(255,217,61,0.35); animation-delay:.5s; }
+.ac-emoji { font-size:46px; margin-bottom:10px; display:block; }
+.ac-title { font-family:'Jua',sans-serif; font-size:19px; margin-bottom:6px; }
+.ai-card.c1 .ac-title { color:#FF9A70; }
+.ai-card.c2 .ac-title { color:#80B9FF; }
+.ai-card.c3 .ac-title { color:#8EE89A; }
+.ai-card.c4 .ac-title { color:#FF8FA3; }
+.ai-card.c5 .ac-title { color:#FFE566; }
+.ac-desc { font-size:13px; color:rgba(255,255,255,0.6); line-height:1.7; }
+
+/* ════════════
+   SLIDE 3 - 에이전트AI란?
+════════════ */
+.s3-bg { background:radial-gradient(ellipse at 25% 70%, #002D1A 0%, #0F0F1E 60%); }
+.diff-wrap { display:grid; grid-template-columns:1fr 50px 1fr; gap:0; align-items:center; width:100%; max-width:800px; margin-top:20px; }
+.diff-card { border-radius:22px; padding:28px 22px; animation:scaleIn .5s ease both; }
+.diff-card.old {
+  background:rgba(255,255,255,0.05);
+  border:2px solid rgba(255,255,255,0.1);
+  animation-delay:.1s;
+}
+.diff-card.new {
+  background:linear-gradient(135deg,rgba(107,203,119,0.2),rgba(77,150,255,0.1));
+  border:2px solid var(--p3);
+  box-shadow:0 0 36px rgba(107,203,119,0.25);
+  animation-delay:.2s;
+}
+.dc-label { font-size:11px; font-weight:800; letter-spacing:2px; opacity:.5; margin-bottom:10px; }
+.dc-title { font-family:'Jua',sans-serif; font-size:24px; margin-bottom:16px; }
+.diff-card.new .dc-title { color:var(--p3); }
+.dc-row {
+  display:flex; align-items:flex-start; gap:10px;
+  padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.07);
+  font-size:15px; font-weight:700;
+}
+.dc-row:last-child { border-bottom:none; }
+.dc-ico { font-size:22px; flex-shrink:0; margin-top:1px; }
+.vs-circle {
+  width:48px; height:48px; border-radius:50%;
+  background:var(--p5);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Jua',sans-serif; font-size:16px;
+  margin:0 auto;
+  box-shadow:0 0 20px rgba(255,101,132,0.5);
+  animation:pulse 2s infinite;
+}
+
+/* ════════════
+   SLIDE 4 - 생활 변화
+════════════ */
+.s4-bg { background:radial-gradient(ellipse at 70% 40%, #1A1A00 0%, #0F0F1E 60%); }
+.life-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; width:100%; max-width:780px; margin-top:20px; }
+.life-card {
+  border-radius:20px; padding:22px 20px;
+  display:flex; align-items:flex-start; gap:16px;
+  animation:slideRight .5s ease both; transition:all .3s;
+}
+.life-card:hover { transform:translateX(8px); }
+.life-card:nth-child(1){background:rgba(255,107,53,0.12);border:2px solid rgba(255,107,53,0.3);animation-delay:.1s;}
+.life-card:nth-child(2){background:rgba(255,217,61,0.1);border:2px solid rgba(255,217,61,0.3);animation-delay:.2s;}
+.life-card:nth-child(3){background:rgba(75,150,255,0.12);border:2px solid rgba(75,150,255,0.3);animation-delay:.3s;}
+.life-card:nth-child(4){background:rgba(107,203,119,0.12);border:2px solid rgba(107,203,119,0.3);animation-delay:.4s;}
+.lc-icon { font-size:38px; flex-shrink:0; }
+.lc-title { font-family:'Jua',sans-serif; font-size:18px; margin-bottom:5px; }
+.life-card:nth-child(1) .lc-title { color:#FF9A70; }
+.life-card:nth-child(2) .lc-title { color:#FFE566; }
+.life-card:nth-child(3) .lc-title { color:#80B9FF; }
+.life-card:nth-child(4) .lc-title { color:#8EE89A; }
+.lc-desc { font-size:14px; color:rgba(255,255,255,0.6); line-height:1.7; }
+
+/* ════════════
+   SLIDE 5 - 퀴즈 OX
+════════════ */
+.s5-bg { background:radial-gradient(ellipse at 50% 50%, #1A1A3D 0%, #0F0F1E 65%); }
+.quiz-wrap {
+  background:rgba(255,255,255,0.07);
+  border:2px solid rgba(255,255,255,0.12);
+  border-radius:28px; padding:32px 36px;
+  width:100%; max-width:720px; text-align:center;
+}
+.quiz-badge {
+  background:var(--p2); color:var(--dark);
+  border-radius:50px; padding:5px 18px;
+  font-family:'Jua',sans-serif; font-size:14px;
+  display:inline-block; margin-bottom:18px;
+}
+.quiz-q {
+  font-family:'Jua',sans-serif;
+  font-size:clamp(20px,3vw,30px);
+  line-height:1.55; margin-bottom:28px;
+}
+.ox-row { display:flex; gap:20px; justify-content:center; }
+.ox-btn {
+  width:110px; height:110px; border-radius:22px; border:none;
+  font-size:52px; cursor:pointer; transition:all .2s;
+  display:flex; align-items:center; justify-content:center;
+}
+.ox-btn.o-btn { background:rgba(107,203,119,0.2); border:3px solid var(--p3); }
+.ox-btn.x-btn { background:rgba(255,101,132,0.2); border:3px solid var(--p5); }
+.ox-btn:hover  { transform:scale(1.12); }
+.ox-btn.correct { background:rgba(107,203,119,0.5); box-shadow:0 0 28px rgba(107,203,119,0.6); transform:scale(1.15); }
+.ox-btn.wrong   { background:rgba(255,101,132,0.4); box-shadow:0 0 28px rgba(255,101,132,0.5); opacity:.5; }
+.q-msg { margin-top:18px; font-family:'Jua',sans-serif; font-size:22px; min-height:30px; }
+.q-msg.ok  { color:var(--p3); }
+.q-msg.no  { color:var(--p5); }
+.q-exp { margin-top:8px; font-size:14px; color:rgba(255,255,255,0.55); min-height:20px; line-height:1.7; }
+
+/* ════════════
+   SLIDE 6 - 퀴즈 객관식
+════════════ */
+.mc-opts { display:flex; flex-direction:column; gap:10px; width:100%; }
+.mc-btn {
+  background:rgba(255,255,255,0.07);
+  border:2px solid rgba(255,255,255,0.12);
+  border-radius:14px; padding:14px 22px;
+  font-family:'Jua',sans-serif; font-size:17px;
+  color:white; cursor:pointer; text-align:left;
+  display:flex; align-items:center; gap:12px;
+  transition:all .2s;
+}
+.mc-btn:hover:not(:disabled) { border-color:var(--p4); background:rgba(77,150,255,0.15); transform:translateX(6px); }
+.mc-btn.correct { border-color:var(--p3)!important; background:rgba(107,203,119,0.2)!important; }
+.mc-btn.wrong   { border-color:var(--p5)!important; background:rgba(255,101,132,0.1)!important; opacity:.6; }
+.mc-num {
+  width:30px; height:30px; border-radius:50%;
+  background:rgba(255,255,255,0.12);
+  display:flex; align-items:center; justify-content:center;
+  font-size:14px; flex-shrink:0;
+}
+
+/* ════════════
+   SLIDE 7 - 손들기
+════════════ */
+.s7-bg { background:radial-gradient(ellipse at 40% 60%, #002D10 0%, #0F0F1E 60%); }
+.think-q {
+  font-family:'Jua',sans-serif;
+  font-size:clamp(22px,4vw,40px);
+  text-align:center; line-height:1.4; margin-bottom:28px;
+  background:linear-gradient(135deg,#fff,#A7F3D0,#FFD93D);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.hand-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; width:100%; max-width:720px; }
+.hand-card {
+  background:rgba(255,255,255,0.07);
+  border:2px solid rgba(255,255,255,0.1);
+  border-radius:20px; padding:18px 12px; text-align:center;
+  cursor:pointer; transition:all .25s; user-select:none;
+}
+.hand-card:hover { transform:scale(1.05); }
+.hand-card.raised {
+  border-color:var(--p3);
+  background:rgba(107,203,119,0.2);
+  box-shadow:0 0 22px rgba(107,203,119,0.3);
+  transform:scale(1.08) translateY(-6px);
+}
+.h-emoji { font-size:42px; display:block; margin-bottom:6px; transition:transform .3s; }
+.hand-card.raised .h-emoji { transform:translateY(-8px) rotate(-10deg); animation:wiggle .4s ease; }
+.h-label { font-family:'Jua',sans-serif; font-size:14px; color:rgba(255,255,255,0.7); }
+.h-count { font-family:'Jua',sans-serif; font-size:22px; color:var(--p3); margin-top:4px; min-height:28px; }
+.think-total { margin-top:18px; font-family:'Jua',sans-serif; font-size:20px; color:var(--p2); text-align:center; min-height:28px; }
+
+/* ════════════
+   SLIDE 8 - 직업
+════════════ */
+.s8-bg { background:radial-gradient(ellipse at 75% 30%, #2D1A00 0%, #0F0F1E 60%); }
+.job-new {
+  display:grid; grid-template-columns:repeat(3,1fr);
+  gap:16px; width:100%; max-width:800px; margin-top:18px;
+}
+.job-card {
+  border-radius:20px; padding:22px 16px; text-align:center;
+  transition:all .3s; cursor:default; animation:scaleIn .5s ease both;
+}
+.job-card:hover { transform:translateY(-8px); }
+.job-card:nth-child(1){background:rgba(255,107,53,0.12);border:2px solid rgba(255,107,53,0.35);animation-delay:.1s;}
+.job-card:nth-child(2){background:rgba(77,150,255,0.12);border:2px solid rgba(77,150,255,0.35);animation-delay:.2s;}
+.job-card:nth-child(3){background:rgba(107,203,119,0.12);border:2px solid rgba(107,203,119,0.35);animation-delay:.3s;}
+.job-card:nth-child(4){background:rgba(255,217,61,0.1);border:2px solid rgba(255,217,61,0.3);animation-delay:.4s;}
+.job-card:nth-child(5){background:rgba(255,101,132,0.1);border:2px solid rgba(255,101,132,0.3);animation-delay:.5s;}
+.job-card:nth-child(6){background:rgba(167,139,250,0.1);border:2px solid rgba(167,139,250,0.3);animation-delay:.6s;}
+.jc-emoji { font-size:44px; display:block; margin-bottom:10px; }
+.jc-title { font-family:'Jua',sans-serif; font-size:17px; margin-bottom:6px; }
+.job-card:nth-child(1) .jc-title{color:#FF9A70;}
+.job-card:nth-child(2) .jc-title{color:#80B9FF;}
+.job-card:nth-child(3) .jc-title{color:#8EE89A;}
+.job-card:nth-child(4) .jc-title{color:#FFE566;}
+.job-card:nth-child(5) .jc-title{color:#FF8FA3;}
+.job-card:nth-child(6) .jc-title{color:#C4B5FD;}
+.jc-desc { font-size:12px; color:rgba(255,255,255,0.55); line-height:1.6; }
+
+/* ════════════
+   SLIDE 9 - 걱정되는 점
+════════════ */
+.s9-bg { background:radial-gradient(ellipse at 30% 40%, #2D0010 0%, #0F0F1E 60%); }
+.worry-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; width:100%; max-width:760px; margin-top:20px; }
+.worry-card {
+  border-radius:20px; padding:24px 22px;
+  animation:scaleIn .5s ease both; transition:all .3s;
+}
+.worry-card:hover { transform:scale(1.03); }
+.worry-card.w1{background:rgba(255,101,132,0.12);border:2px solid rgba(255,101,132,0.35);animation-delay:.1s;}
+.worry-card.w2{background:rgba(255,107,53,0.12);border:2px solid rgba(255,107,53,0.35);animation-delay:.2s;}
+.wc-icon { font-size:40px; margin-bottom:10px; }
+.wc-title { font-family:'Jua',sans-serif; font-size:20px; margin-bottom:8px; }
+.worry-card.w1 .wc-title { color:#FF8FA3; }
+.worry-card.w2 .wc-title { color:#FF9A70; }
+.wc-desc { font-size:14px; color:rgba(255,255,255,0.6); line-height:1.8; }
+.safe-tip {
+  width:100%; max-width:760px; margin-top:14px;
+  background:rgba(107,203,119,0.1); border:2px solid rgba(107,203,119,0.3);
+  border-radius:18px; padding:16px 22px;
+  display:flex; align-items:center; gap:14px;
+  animation:fadeUp .5s ease .4s both;
+}
+.safe-tip-text { font-size:15px; font-weight:700; line-height:1.8; color:rgba(255,255,255,0.8); }
+
+/* ════════════
+   SLIDE 10 - 코딩 열정
+════════════ */
+.s10-bg {
+  background:radial-gradient(ellipse at 20% 80%, #2D0A00 0%, #0F0F1E 45%),
+            radial-gradient(ellipse at 80% 20%, #0A002D 0%, transparent 55%);
+}
+.fire-title {
+  font-family:'Jua',sans-serif;
+  font-size:clamp(28px,5vw,56px);
+  text-align:center; line-height:1.2; margin-bottom:8px;
+  background:linear-gradient(135deg,#FFD93D 0%,#FF6B35 40%,#FF6584 80%,#C084FC 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+  animation:fadeUp .5s ease .1s both;
+  filter:drop-shadow(0 0 18px rgba(255,107,53,0.5));
+}
+.fire-sub {
+  font-size:16px; color:rgba(255,255,255,0.5);
+  text-align:center; margin-bottom:18px;
+  animation:fadeUp .5s ease .2s both;
+}
+.fire-cards {
+  display:grid; grid-template-columns:repeat(3,1fr);
+  gap:14px; width:100%; max-width:800px; margin-bottom:16px;
+}
+.fire-card {
+  border-radius:20px; padding:20px 14px; text-align:center;
+  transition:all .3s; cursor:default; animation:scaleIn .5s ease both;
+  position:relative; overflow:hidden;
+}
+.fire-card:hover { transform:translateY(-8px) scale(1.03); }
+.fire-card.fc1{background:rgba(255,107,53,0.15);border:2px solid rgba(255,107,53,0.4);animation-delay:.15s;}
+.fire-card.fc2{background:rgba(77,150,255,0.15);border:2px solid rgba(77,150,255,0.4);animation-delay:.25s;}
+.fire-card.fc3{background:rgba(107,203,119,0.12);border:2px solid rgba(107,203,119,0.35);animation-delay:.35s;}
+.fc-big { font-size:40px; margin-bottom:8px; display:block; animation:float 3s ease-in-out infinite; }
+.fc-title { font-family:'Jua',sans-serif; font-size:17px; margin-bottom:8px; line-height:1.4; }
+.fire-card.fc1 .fc-title { color:#FF9A70; }
+.fire-card.fc2 .fc-title { color:#80B9FF; }
+.fire-card.fc3 .fc-title { color:#8EE89A; }
+.fc-desc { font-size:13px; color:rgba(255,255,255,0.6); line-height:1.7; }
+.fire-banner {
+  width:100%; max-width:800px;
+  background:linear-gradient(135deg,#FF6B35,#FF6584,#6C63FF);
+  border-radius:20px; padding:16px 28px;
+  display:flex; align-items:center; justify-content:center; gap:14px;
+  box-shadow:0 0 36px rgba(255,107,53,0.4);
+  animation:fadeUp .5s ease .5s both;
+  cursor:pointer; transition:all .3s;
+}
+.fire-banner:hover { transform:scale(1.02); box-shadow:0 0 60px rgba(255,107,53,0.6); }
+.fire-banner-text {
+  font-family:'Jua',sans-serif;
+  font-size:clamp(16px,2.2vw,22px); color:white; text-align:center; line-height:1.5;
+}
+
+/* ════════════
+   SLIDE 11 - 마무리
+════════════ */
+.s11-bg {
+  background:radial-gradient(ellipse at 50% 50%, #001A2D 0%, #0F0F1E 50%),
+            radial-gradient(ellipse at 80% 80%, #2D1A00 0%, transparent 50%);
+}
+.end-title {
+  font-family:'Jua',sans-serif;
+  font-size:clamp(40px,7vw,80px);
+  text-align:center; line-height:1.1;
+  background:linear-gradient(135deg,#FFD93D,#FF6B35,#FF6584,#6BCB77);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+  animation:fadeUp .6s ease .2s both; margin-bottom:16px;
+}
+.end-sub {
+  font-size:19px; color:rgba(255,255,255,0.65);
+  text-align:center; line-height:1.9;
+  animation:fadeUp .6s ease .4s both; margin-bottom:32px;
+}
+.end-cards {
+  display:flex; gap:16px; flex-wrap:wrap;
+  justify-content:center; animation:fadeUp .6s ease .6s both;
+}
+.end-card {
+  background:rgba(255,255,255,0.07);
+  border:1.5px solid rgba(255,255,255,0.12);
+  border-radius:18px; padding:18px 26px; text-align:center; min-width:160px;
+  transition:all .3s;
+}
+.end-card:hover { transform:translateY(-6px); border-color:var(--p3); }
+.ec-emoji { font-size:34px; display:block; margin-bottom:8px; }
+.ec-text { font-family:'Jua',sans-serif; font-size:16px; }
+
+/* ── 애니메이션 ── */
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
+@keyframes float  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:translateY(0)} }
+@keyframes scaleIn{ from{opacity:0;transform:scale(0.85)} to{opacity:1;transform:scale(1)} }
+@keyframes slideRight{ from{opacity:0;transform:translateX(-28px)} to{opacity:1;transform:translateX(0)} }
+@keyframes pulse{ 0%,100%{box-shadow:0 0 18px rgba(255,101,132,.5)} 50%{box-shadow:0 0 36px rgba(255,101,132,.9)} }
+@keyframes wiggle{ 0%{transform:rotate(0)} 25%{transform:rotate(-15deg)} 75%{transform:rotate(10deg)} 100%{transform:rotate(0)} }
+@keyframes starPop{ 0%{transform:scale(0) rotate(-20deg);opacity:0} 70%{transform:scale(1.2) rotate(5deg);opacity:1} 100%{transform:scale(1) rotate(0);opacity:1} }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div class="key-hint">← → 키로 이동</div>
+
+<div id="deck">
+
+<!-- ── SLIDE 0: 영상 ── -->
+<div class="slide s0-bg" data-slide="0">
+  <div class="slide-badge">00 / 12</div>
+  <div style="font-size:13px;font-weight:800;letter-spacing:2px;color:rgba(255,255,255,0.35);margin-bottom:12px;animation:fadeUp .4s ease both;">🎬 수업 도입 영상</div>
+  <div class="vid-title">AI 친구가 세상을 바꾼다!</div>
+
+  <div style="display:flex; flex-direction:column; align-items:center; gap:18px; animation:fadeUp .6s ease .25s both;">
+    <a href="https://www.youtube.com/watch?v=AmCSsjhT-Dg" target="_blank"
+      style="display:inline-flex;align-items:center;gap:16px;background:linear-gradient(135deg,#FF0000,#CC0000);border-radius:22px;padding:24px 44px;text-decoration:none;box-shadow:0 0 40px rgba(255,0,0,0.5);transition:all .25s;"
+      onmouseover="this.style.transform='scale(1.06)';this.style.boxShadow='0 0 60px rgba(255,0,0,0.7)'"
+      onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 0 40px rgba(255,0,0,0.5)'"
+    >
+      <span style="font-size:56px;">▶</span>
+      <div>
+        <div style="font-family:'Jua',sans-serif;font-size:24px;color:white;margin-bottom:4px;">유튜브에서 영상 보기</div>
+        <div style="font-size:14px;color:rgba(255,255,255,0.7);">클릭하면 새 창으로 열려요 😊</div>
+      </div>
+    </a>
+    <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:12px 22px;display:inline-block;">
+      <div style="font-size:12px;color:rgba(255,255,255,0.35);font-weight:800;letter-spacing:1px;margin-bottom:5px;">🔗 영상 주소</div>
+      <div style="font-size:14px;color:rgba(255,255,255,0.65);font-family:monospace;">youtu.be/AmCSsjhT-Dg</div>
+    </div>
+  </div>
+
+  <div style="margin-top:22px;font-size:16px;color:rgba(255,255,255,0.4);animation:fadeUp .5s ease .5s both;">
+    🎬 영상을 보고 느낀 점을 이야기해봐요!
+  </div>
+</div>
+
+<!-- ── SLIDE 1: 타이틀 ── -->
+<div class="slide s1-bg" data-slide="1">
+  <div class="slide-badge">01 / 12</div>
+  <span class="main-emoji">🤖</span>
+  <div style="font-family:'Jua',sans-serif;font-size:14px;letter-spacing:2px;color:rgba(255,255,255,0.45);margin-bottom:10px;animation:fadeUp .5s ease .15s both;">🚀 2025 최신 AI 이야기</div>
+  <div class="main-title">에이전트 AI 시대!</div>
+  <div class="main-sub">AI가 스스로 일을 해준다고?!<br>우리 생활이 어떻게 바뀔까요? 🌍</div>
+  <div class="chip-row">
+    <div class="chip">🧠 스스로 생각</div>
+    <div class="chip">⚡ 알아서 실행</div>
+    <div class="chip">🎯 목표 달성</div>
+    <div class="chip">🌈 새로운 미래</div>
+  </div>
+</div>
+
+<!-- ── SLIDE 2: AI란? ── -->
+<div class="slide s2-bg" data-slide="2">
+  <div class="slide-badge">02 / 12</div>
+  <div class="slide-title">AI가 뭐예요? 🤔</div>
+  <div class="slide-sub">사람처럼 생각하는 컴퓨터예요!</div>
+  <div class="ai-grid">
+    <div class="ai-card c1">
+      <span class="ac-emoji">🗣️</span>
+      <div class="ac-title">말하기</div>
+      <div class="ac-desc">우리 말을 이해하고<br>대답해줘요</div>
+    </div>
+    <div class="ai-card c2">
+      <span class="ac-emoji">🎨</span>
+      <div class="ac-title">그림 그리기</div>
+      <div class="ac-desc">말만 하면 그림을<br>뚝딱 만들어요</div>
+    </div>
+    <div class="ai-card c3">
+      <span class="ac-emoji">🧮</span>
+      <div class="ac-title">계산하기</div>
+      <div class="ac-desc">복잡한 수학도<br>순식간에 풀어요</div>
+    </div>
+    <div class="ai-card c4">
+      <span class="ac-emoji">🌏</span>
+      <div class="ac-title">번역하기</div>
+      <div class="ac-desc">외국어를 한국어로<br>바꿔줘요</div>
+    </div>
+    <div class="ai-card c5">
+      <span class="ac-emoji">🎵</span>
+      <div class="ac-title">음악 만들기</div>
+      <div class="ac-desc">노래도 작곡도<br>할 수 있어요!</div>
+    </div>
+    <div class="ai-card c1" style="background:rgba(167,139,250,0.15);border-color:rgba(167,139,250,0.4);animation-delay:.6s;">
+      <span class="ac-emoji">📚</span>
+      <div class="ac-title" style="color:#C4B5FD;">공부 도우미</div>
+      <div class="ac-desc">어려운 내용을<br>쉽게 설명해줘요</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SLIDE 3: 에이전트AI란? ── -->
+<div class="slide s3-bg" data-slide="3">
+  <div class="slide-badge">03 / 12</div>
+  <div class="slide-title">에이전트 AI는 특별해요! ✨</div>
+  <div class="slide-sub">기존 AI와 무엇이 다를까요?</div>
+  <div class="diff-wrap">
+    <div class="diff-card old">
+      <div class="dc-label">BEFORE</div>
+      <div class="dc-title">보통 AI</div>
+      <div class="dc-row"><span class="dc-ico">💬</span><span>시키는 것만 해요</span></div>
+      <div class="dc-row"><span class="dc-ico">🔁</span><span>한 번에 한 가지만</span></div>
+      <div class="dc-row"><span class="dc-ico">👤</span><span>사람이 계속 말해야 해요</span></div>
+      <div class="dc-row"><span class="dc-ico">🤖</span><span>네이버 AI, 번역기 등</span></div>
+    </div>
+    <div class="vs-circle">VS</div>
+    <div class="diff-card new">
+      <div class="dc-label">NOW</div>
+      <div class="dc-title">에이전트 AI</div>
+      <div class="dc-row"><span class="dc-ico">🎯</span><span>목표만 주면 알아서!</span></div>
+      <div class="dc-row"><span class="dc-ico">🔗</span><span>여러 일을 이어서 해요</span></div>
+      <div class="dc-row"><span class="dc-ico">🧠</span><span>스스로 계획하고 실행!</span></div>
+      <div class="dc-row"><span class="dc-ico">⭐</span><span>진짜 도우미 AI!</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SLIDE 4: 생활 변화 ── -->
+<div class="slide s4-bg" data-slide="4">
+  <div class="slide-badge">04 / 12</div>
+  <div class="slide-title">우리 생활이 이렇게 바뀌어요! 🏠</div>
+  <div class="slide-sub">에이전트 AI가 도와주는 것들</div>
+  <div class="life-grid">
+    <div class="life-card">
+      <div class="lc-icon">📚</div>
+      <div>
+        <div class="lc-title">숙제 계획 도우미</div>
+        <div class="lc-desc">오늘 숙제가 뭔지 알려주고<br>언제 할지 계획도 세워줘요!</div>
+      </div>
+    </div>
+    <div class="life-card">
+      <div class="lc-icon">🍳</div>
+      <div>
+        <div class="lc-title">요리 도우미 로봇</div>
+        <div class="lc-desc">재료를 보고 요리법을 알려주고<br>타이머도 맞춰줘요!</div>
+      </div>
+    </div>
+    <div class="life-card">
+      <div class="lc-icon">🏫</div>
+      <div>
+        <div class="lc-title">맞춤 공부 도우미</div>
+        <div class="lc-desc">내가 어려워하는 것만 골라서<br>쉽게 설명해줘요!</div>
+      </div>
+    </div>
+    <div class="life-card">
+      <div class="lc-icon">🤖</div>
+      <div>
+        <div class="lc-title">청소 로봇</div>
+        <div class="lc-desc">집 구조를 기억하고 혼자서<br>청소해줘요!</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SLIDE 5: 퀴즈 OX ── -->
+<div class="slide s5-bg" data-slide="5">
+  <div class="slide-badge">05 / 12</div>
+  <div class="slide-title">🧠 퀴즈 타임!</div>
+  <div class="slide-sub">맞히면 ⭐ 스타 획득!</div>
+  <div class="quiz-wrap">
+    <div class="quiz-badge">QUIZ 1 · OX 문제</div>
+    <div class="quiz-q">
+      에이전트 AI는 목표만 말하면<br>스스로 계획을 세우고 실행할 수 있다!
+    </div>
+    <div class="ox-row">
+      <button class="ox-btn o-btn" onclick="answerOX(this,'o','o')">⭕</button>
+      <button class="ox-btn x-btn" onclick="answerOX(this,'x','o')">❌</button>
+    </div>
+    <div class="q-msg" id="q1-msg"></div>
+    <div class="q-exp" id="q1-exp"></div>
+  </div>
+</div>
+
+<!-- ── SLIDE 6: 퀴즈 객관식 ── -->
+<div class="slide s5-bg" data-slide="6">
+  <div class="slide-badge">06 / 12</div>
+  <div class="slide-title">🧠 퀴즈 타임!</div>
+  <div class="quiz-wrap" style="max-width:780px;">
+    <div class="quiz-badge">QUIZ 2 · 객관식</div>
+    <div class="quiz-q" style="font-size:clamp(18px,2.5vw,26px);">
+      AI가 우리 집 청소를 혼자서 해줄 수 있는 이유는?
+    </div>
+    <div class="mc-opts" id="q2-opts">
+      <button class="mc-btn" onclick="answerMC(this,false,'q2')">
+        <span class="mc-num">①</span>AI가 눈이 100개라서
+      </button>
+      <button class="mc-btn" onclick="answerMC(this,false,'q2')">
+        <span class="mc-num">②</span>청소는 원래 컴퓨터가 하는 일이라서
+      </button>
+      <button class="mc-btn" onclick="answerMC(this,true,'q2')">
+        <span class="mc-num">③</span>스스로 집 구조를 파악하고 계획해서 실행하기 때문에
+      </button>
+      <button class="mc-btn" onclick="answerMC(this,false,'q2')">
+        <span class="mc-num">④</span>사람보다 손이 많아서
+      </button>
+    </div>
+    <div class="q-msg" id="q2-msg"></div>
+    <div class="q-exp" id="q2-exp"></div>
+  </div>
+</div>
+
+<!-- ── SLIDE 7: 손들기 ── -->
+<div class="slide s7-bg" data-slide="7">
+  <div class="slide-badge">07 / 12</div>
+  <div class="think-q">
+    AI 도우미가 생긴다면<br>가장 먼저 뭘 시키고 싶어요? 🙋
+  </div>
+  <div class="hand-grid" id="hand-grid">
+    <div class="hand-card" onclick="raiseHand(this)">
+      <span class="h-emoji">📚</span>
+      <div class="h-label">숙제 도우미</div>
+      <div class="h-count" id="hc0"></div>
+    </div>
+    <div class="hand-card" onclick="raiseHand(this)">
+      <span class="h-emoji">🍕</span>
+      <div class="h-label">음식 주문</div>
+      <div class="h-count" id="hc1"></div>
+    </div>
+    <div class="hand-card" onclick="raiseHand(this)">
+      <span class="h-emoji">🎮</span>
+      <div class="h-label">게임 친구</div>
+      <div class="h-count" id="hc2"></div>
+    </div>
+    <div class="hand-card" onclick="raiseHand(this)">
+      <span class="h-emoji">🧹</span>
+      <div class="h-label">청소 대신</div>
+      <div class="h-count" id="hc3"></div>
+    </div>
+  </div>
+  <div class="think-total" id="think-total"></div>
+  <button onclick="resetHands()" style="margin-top:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:7px 18px;color:rgba(255,255,255,0.4);cursor:pointer;font-family:'Jua',sans-serif;font-size:13px;">🔄 초기화</button>
+</div>
+
+<!-- ── SLIDE 8: 미래 직업 ── -->
+<div class="slide s8-bg" data-slide="8">
+  <div class="slide-badge">08 / 12</div>
+  <div class="slide-title">AI 시대에 생기는 새 직업! ✨</div>
+  <div class="slide-sub">여러분이 커서 할 수 있는 멋진 일들이에요</div>
+  <div class="job-new">
+    <div class="job-card">
+      <span class="jc-emoji">🎯</span>
+      <div class="jc-title">AI 기획자</div>
+      <div class="jc-desc">AI가 뭘 해야 할지<br>계획하는 사람</div>
+    </div>
+    <div class="job-card">
+      <span class="jc-emoji">🎮</span>
+      <div class="jc-title">AI 게임 개발자</div>
+      <div class="jc-desc">AI로 더 재미있는<br>게임을 만드는 사람</div>
+    </div>
+    <div class="job-card">
+      <span class="jc-emoji">🎬</span>
+      <div class="jc-title">AI 콘텐츠 창작자</div>
+      <div class="jc-desc">AI로 영상·그림을<br>만드는 크리에이터</div>
+    </div>
+    <div class="job-card">
+      <span class="jc-emoji">🏥</span>
+      <div class="jc-title">AI 의료 전문가</div>
+      <div class="jc-desc">AI와 함께 병을<br>고치는 의사</div>
+    </div>
+    <div class="job-card">
+      <span class="jc-emoji">⚖️</span>
+      <div class="jc-title">AI 윤리 선생님</div>
+      <div class="jc-desc">AI가 나쁜 일 안 하도록<br>가르치는 사람</div>
+    </div>
+    <div class="job-card">
+      <span class="jc-emoji">🤖</span>
+      <div class="jc-title">로봇 선생님</div>
+      <div class="jc-desc">AI 로봇과 함께<br>가르치는 교사</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SLIDE 9: 걱정되는 점 ── -->
+<div class="slide s9-bg" data-slide="9">
+  <div class="slide-badge">09 / 12</div>
+  <div class="slide-title">AI, 걱정되는 점도 있어요 🤔</div>
+  <div class="slide-sub">AI를 현명하게 사용하는 방법을 알아봐요</div>
+  <div class="worry-grid">
+    <div class="worry-card w1">
+      <div class="wc-icon">📰</div>
+      <div class="wc-title">가짜 정보</div>
+      <div class="wc-desc">
+        AI가 틀린 정보를 마치 맞는 것처럼 말할 수 있어요.<br>
+        중요한 내용은 꼭 <strong style="color:#FF8FA3;">다른 곳에서도 확인</strong>해야 해요!
+      </div>
+    </div>
+    <div class="worry-card w2">
+      <div class="wc-icon">🔒</div>
+      <div class="wc-title">개인정보 조심</div>
+      <div class="wc-desc">
+        이름, 주소, 전화번호 같은 개인정보는<br>
+        AI에게도 <strong style="color:#FF9A70;">함부로 알려주면 안 돼요!</strong>
+      </div>
+    </div>
+  </div>
+  <div class="safe-tip">
+    <span style="font-size:32px;">🛡️</span>
+    <div class="safe-tip-text">
+      AI는 <strong style="color:#8EE89A;">도구</strong>예요! 결정은 항상 <strong style="color:#FFD93D;">내가</strong> 해야 해요.<br>
+      AI가 틀릴 수도 있다는 걸 항상 기억해요 😊
+    </div>
+  </div>
+</div>
+
+<!-- ── SLIDE 10: 코딩 열정 ── -->
+<div class="slide s10-bg" data-slide="10">
+  <div class="slide-badge">10 / 12</div>
+  <div class="fire-title">🔥 코딩을 배우면<br>AI 시대의 주인공이 돼요!</div>
+  <div class="fire-sub">지금 배우는 코딩 한 줄이 여러분의 미래를 만들어요</div>
+  <div class="fire-cards">
+    <div class="fire-card fc1">
+      <span class="fc-big">🎮</span>
+      <div class="fc-title">내가 만든 게임을<br>전 세계가 즐겨요!</div>
+      <div class="fc-desc">코딩을 알면 상상 속 게임을<br>직접 만들 수 있어요.<br>마인크래프트도 코딩으로<br>만들어졌어요! 🌍</div>
+    </div>
+    <div class="fire-card fc2">
+      <span class="fc-big">🤖</span>
+      <div class="fc-title">AI에게 명령하는<br>사람이 돼요!</div>
+      <div class="fc-desc">코딩을 알면 AI를<br><strong style="color:#A5D8FF;">내 마음대로 조종</strong>할 수 있어요.<br>도구를 쓰는 게 아니라<br>도구를 만드는 거예요 💪</div>
+    </div>
+    <div class="fire-card fc3">
+      <span class="fc-big">💡</span>
+      <div class="fc-title">아이디어가 현실이<br>되는 마법!</div>
+      <div class="fc-desc">"이런 앱이 있으면 좋겠다"<br>는 생각을 <strong style="color:#A7F3D0;">직접 만들</strong> 수 있어요.<br>여러분의 코드가 세상을<br>바꿀 수 있어요 🌟</div>
+    </div>
+  </div>
+  <div class="fire-banner" id="fire-banner" onclick="igniteBanner()">
+    <span style="font-size:30px;animation:float 1.5s ease-in-out infinite;">🔥</span>
+    <div class="fire-banner-text">
+      코딩은 어렵지 않아요! 오늘 배운 것부터 시작해요!<br>
+      <span style="color:#FFD93D;">여러분이 바로 미래의 AI 개발자예요!</span>
+    </div>
+    <span style="font-size:30px;animation:float 1.5s ease-in-out infinite .3s;">🔥</span>
+  </div>
+</div>
+
+<!-- ── SLIDE 11: 마무리 ── -->
+<div class="slide s11-bg" data-slide="11">
+  <div class="slide-badge">11 / 12</div>
+  <div class="end-title">AI는 도구,<br>주인공은 바로 너! 🌟</div>
+  <div class="end-sub">
+    에이전트 AI는 우리를 도와주는 <strong>멋진 도구</strong>예요.<br>
+    하지만 <strong>어떻게 쓸지 결정하는 건 여러분</strong>이에요!
+  </div>
+  <div class="end-cards">
+    <div class="end-card">
+      <span class="ec-emoji">💻</span>
+      <div class="ec-text">코딩 배우기</div>
+    </div>
+    <div class="end-card">
+      <span class="ec-emoji">💡</span>
+      <div class="ec-text">창의력 키우기</div>
+    </div>
+    <div class="end-card">
+      <span class="ec-emoji">🤝</span>
+      <div class="ec-text">친구와 협력</div>
+    </div>
+    <div class="end-card">
+      <span class="ec-emoji">🔍</span>
+      <div class="ec-text">비판적으로 보기</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<!-- NAV -->
+<div id="nav">
+  <button onclick="prevSlide()">◀</button>
+  <div class="dot-row" id="dots"></div>
+  <div id="slide-counter">1 / 12</div>
+  <button onclick="nextSlide()">▶</button>
+</div>
+
+<script>
+/* ── 배경 별 파티클 ── */
+const canvas = document.getElementById('bg-canvas');
+const ctx    = canvas.getContext('2d');
+function resize(){ canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
+resize(); window.addEventListener('resize', resize);
+
+const particles = Array.from({length:70}, () => ({
+  x: Math.random()*window.innerWidth,
+  y: Math.random()*window.innerHeight,
+  r: Math.random()*2.2 + 0.4,
+  dx:(Math.random()-.5)*.35, dy:(Math.random()-.5)*.35,
+  alpha:Math.random()*.45+.1,
+  color:['#FF6B35','#FFD93D','#6BCB77','#4D96FF','#FF6584'][Math.floor(Math.random()*5)]
+}));
+
+(function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particles.forEach(p=>{
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle=p.color; ctx.globalAlpha=p.alpha; ctx.fill();
+    p.x+=p.dx; p.y+=p.dy;
+    if(p.x<0||p.x>canvas.width)  p.dx*=-1;
+    if(p.y<0||p.y>canvas.height) p.dy*=-1;
+  });
+  ctx.globalAlpha=1;
+  requestAnimationFrame(draw);
+})();
+
+/* ── 슬라이드 제어 ── */
+const slides = document.querySelectorAll('.slide');
+const total  = slides.length;
+let current  = 0;
+
+const dotsEl = document.getElementById('dots');
+slides.forEach((_,i)=>{
+  const d = document.createElement('div');
+  d.className = 'dot'+(i===0?' on':'');
+  d.onclick = ()=>goTo(i);
+  dotsEl.appendChild(d);
+});
+
+function goTo(n){
+  slides[current].classList.remove('active');
+  slides[current].classList.add('exit');
+  setTimeout(()=>slides[current].classList.remove('exit'),480);
+  current=(n+total)%total;
+  slides[current].classList.add('active');
+  document.getElementById('slide-counter').textContent=(current+1)+' / '+total;
+  document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('on',i===current));
+}
+function nextSlide(){ goTo(current+1); }
+function prevSlide(){ goTo(current-1); }
+
+document.addEventListener('keydown', e=>{
+  if(e.key==='ArrowRight'||e.key===' ') nextSlide();
+  if(e.key==='ArrowLeft') prevSlide();
+});
+
+slides[0].classList.add('active');
+
+/* ── 퀴즈 OX ── */
+function answerOX(btn, clicked, correct){
+  const btns = btn.closest('.ox-row').querySelectorAll('.ox-btn');
+  btns.forEach(b=>b.disabled=true);
+  const box = btn.closest('.quiz-wrap');
+  const msg = box.querySelector('.q-msg');
+  const exp = box.querySelector('.q-exp');
+  if(clicked===correct){
+    btn.classList.add('correct');
+    msg.textContent='🎉 정답! 완전 잘했어요!'; msg.className='q-msg ok';
+    exp.textContent='맞아요! 에이전트 AI는 목표만 말하면 스스로 알아서 실행해요! ⭕';
+    showStars();
+  } else {
+    btn.classList.add('wrong');
+    btns.forEach(b=>{ if(b!==btn) b.classList.add('correct'); });
+    msg.textContent='😅 아쉬워요~ 다시 생각해봐요!'; msg.className='q-msg no';
+    exp.textContent='에이전트 AI는 스스로 계획하고 실행할 수 있어요!';
+  }
+}
+
+/* ── 퀴즈 객관식 ── */
+function answerMC(btn, isCorrect, qId){
+  const opts=document.getElementById(qId+'-opts');
+  opts.querySelectorAll('.mc-btn').forEach(b=>b.disabled=true);
+  const msg=document.getElementById(qId+'-msg');
+  const exp=document.getElementById(qId+'-exp');
+  if(isCorrect){
+    btn.classList.add('correct');
+    msg.textContent='🎉 정답! 대단해요!'; msg.className='q-msg ok';
+    exp.textContent='에이전트 AI가 집 구조를 스스로 파악하고 계획해서 청소할 수 있어요!';
+    showStars();
+  } else {
+    btn.classList.add('wrong');
+    opts.querySelectorAll('.mc-btn').forEach(b=>{
+      if(b.onclick.toString().includes('true')) b.classList.add('correct');
+    });
+    msg.textContent='😅 아쉬워요! 정답을 확인해봐요!'; msg.className='q-msg no';
+  }
+}
+
+/* ── 별 폭발 ── */
+function showStars(){
+  const emojis=['⭐','✨','🌟','🎉','💫','🌈'];
+  for(let i=0;i<14;i++){
+    const el=document.createElement('div');
+    el.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+    el.style.cssText=`
+      position:fixed;z-index:999;pointer-events:none;
+      font-size:${22+Math.random()*24}px;
+      left:${10+Math.random()*80}vw;
+      top:${10+Math.random()*75}vh;
+      animation:starPop .65s ease ${i*.07}s both;
+    `;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(), 2500);
+  }
+}
+
+/* ── 불꽃 배너 ── */
+function igniteBanner(){
+  const b=document.getElementById('fire-banner');
+  b.style.animation='none';
+  setTimeout(()=>b.style.animation='',50);
+  const emojis=['🔥','💥','⭐','🚀','💪','🌟','🎯','✨'];
+  for(let i=0;i<20;i++){
+    const el=document.createElement('div');
+    el.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+    el.style.cssText=`
+      position:fixed;z-index:999;pointer-events:none;
+      font-size:${18+Math.random()*30}px;
+      left:${5+Math.random()*90}vw;
+      top:${10+Math.random()*80}vh;
+      animation:starPop .7s ease ${i*.06}s both;
+    `;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(), 2800);
+  }
+}
+
+/* ── 손들기 ── */
+const handCounts=[0,0,0,0];
+function raiseHand(card){
+  const cards=document.querySelectorAll('.hand-card');
+  const idx=Array.from(cards).indexOf(card);
+  const wasRaised=card.classList.contains('raised');
+  if(wasRaised){
+    card.classList.remove('raised');
+    handCounts[idx]=Math.max(0,handCounts[idx]-1);
+  } else {
+    card.classList.add('raised');
+    handCounts[idx]++;
+  }
+  document.getElementById('hc'+idx).textContent=handCounts[idx]||'';
+  const total=handCounts.reduce((a,b)=>a+b,0);
+  document.getElementById('think-total').textContent=
+    total>0?`총 ${total}명이 의견을 냈어요! 👏`:'';
+}
+function resetHands(){
+  handCounts.fill(0);
+  document.querySelectorAll('.hand-card').forEach(c=>c.classList.remove('raised'));
+  for(let i=0;i<4;i++) document.getElementById('hc'+i).textContent='';
+  document.getElementById('think-total').textContent='';
+}
+</script>
+</body>
+</html>
