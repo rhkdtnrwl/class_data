@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>컴퓨터를 배워요! 🖥️</title>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Round+Square:wght@400;700;800&family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky: #5BC8F5;
+    --sun: #FFD93D;
+    --grass: #6BCB77;
+    --coral: #FF6B6B;
+    --purple: #C77DFF;
+    --navy: #1A1A4E;
+    --white: #FFFDF7;
+    --orange: #FF9A3C;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nanum Round Square', 'Nanum Gothic', sans-serif;
+    background: var(--white);
+    overflow: hidden;
+  }
+
+  /* ── 슬라이드 컨테이너 ── */
+  .slideshow {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    animation: fadeIn 0.5s ease;
+  }
+  .slide.active { display: flex; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.97); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  /* ── 하단 내비게이션 ── */
+  .nav {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    background: rgba(255,255,255,0.9);
+    border-radius: 50px;
+    padding: 10px 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    z-index: 100;
+  }
+  .nav button {
+    border: none;
+    background: var(--navy);
+    color: white;
+    font-family: 'Nanum Round Square', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.15s, background 0.15s;
+  }
+  .nav button:hover { transform: scale(1.15); background: var(--coral); }
+  .nav .page-info {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy);
+    min-width: 60px;
+    text-align: center;
+  }
+
+  /* ══════════════════════════════
+     슬라이드 1 – 타이틀
+  ══════════════════════════════ */
+  .slide-title {
+    background: linear-gradient(135deg, #A8EDEA 0%, #FED6E3 100%);
+  }
+  .title-bubble {
+    background: var(--navy);
+    color: white;
+    border-radius: 30px;
+    padding: 20px 50px;
+    font-size: 52px;
+    font-weight: 800;
+    text-align: center;
+    box-shadow: 8px 8px 0 var(--coral);
+    margin-bottom: 24px;
+    letter-spacing: -1px;
+  }
+  .title-sub {
+    font-size: 26px;
+    color: var(--navy);
+    font-weight: 700;
+    margin-bottom: 30px;
+  }
+  .title-icons {
+    display: flex;
+    gap: 20px;
+    font-size: 56px;
+    animation: bounce 1.8s infinite;
+  }
+  @keyframes bounce {
+    0%,100% { transform: translateY(0); }
+    50%      { transform: translateY(-14px); }
+  }
+  .title-stars {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .star {
+    position: absolute;
+    font-size: 28px;
+    animation: twinkle 2.5s infinite;
+  }
+  @keyframes twinkle {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.3; transform: scale(0.7); }
+  }
+
+  /* ══════════════════════════════
+     공통 콘텐츠 슬라이드 스타일
+  ══════════════════════════════ */
+  .slide-header {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--navy);
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .slide-header .badge {
+    background: var(--coral);
+    color: white;
+    border-radius: 50%;
+    width: 50px; height: 50px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  /* ══════════════════════════════
+     슬라이드 2 – 컴퓨터 가족
+  ══════════════════════════════ */
+  .slide-family { background: linear-gradient(160deg, #E0F7FA 0%, #FFF9C4 100%); }
+
+  .family-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+    width: 100%;
+    max-width: 860px;
+  }
+  .family-card {
+    background: white;
+    border-radius: 24px;
+    padding: 28px 16px;
+    text-align: center;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+    cursor: default;
+  }
+  .family-card:hover { transform: translateY(-8px); }
+  .family-card .icon { font-size: 60px; margin-bottom: 10px; }
+  .family-card .name {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--navy);
+    margin-bottom: 6px;
+  }
+  .family-card .desc {
+    font-size: 14px;
+    color: #555;
+    font-weight: 700;
+    line-height: 1.5;
+  }
+  .family-card.highlight { border: 4px solid var(--coral); }
+
+  /* ══════════════════════════════
+     슬라이드 3 – 컴퓨터 그림 (본체·모니터·키보드·마우스)
+  ══════════════════════════════ */
+  .slide-parts { background: linear-gradient(160deg, #E8F5E9 0%, #E3F2FD 100%); }
+
+  .computer-diagram {
+    position: relative;
+    width: 660px;
+    height: 400px;
+    flex-shrink: 0;
+  }
+
+  /* 모니터 */
+  .mon-outer {
+    position: absolute;
+    top: 0; left: 100px;
+    width: 320px; height: 220px;
+    background: var(--navy);
+    border-radius: 18px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mon-screen {
+    width: 290px; height: 190px;
+    background: linear-gradient(135deg, #74EBD5, #ACB6E5);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 38px;
+  }
+  .mon-stand {
+    position: absolute;
+    top: 218px; left: 235px;
+    width: 50px; height: 36px;
+    background: #888;
+    border-radius: 0 0 4px 4px;
+  }
+  .mon-base {
+    position: absolute;
+    top: 252px; left: 208px;
+    width: 104px; height: 14px;
+    background: #aaa;
+    border-radius: 8px;
+  }
+
+  /* 본체 */
+  .tower {
+    position: absolute;
+    top: 40px; left: 0;
+    width: 90px; height: 190px;
+    background: linear-gradient(160deg, #546E7A, #37474F);
+    border-radius: 14px;
+    display: flex; flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 4px 4px 10px rgba(0,0,0,0.25);
+  }
+  .tower .power-btn {
+    width: 26px; height: 26px;
+    background: var(--grass);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--grass);
+  }
+  .tower .disk-slot {
+    width: 60px; height: 8px;
+    background: #222;
+    border-radius: 4px;
+  }
+  .tower .usb-slot {
+    width: 18px; height: 8px;
+    background: #222;
+    border-radius: 2px;
+  }
+
+  /* 키보드 */
+  .keyboard {
+    position: absolute;
+    bottom: 0; left: 90px;
+    width: 320px; height: 68px;
+    background: #CFD8DC;
+    border-radius: 10px;
+    box-shadow: 0 4px 0 #90A4AE;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 3px;
+    padding: 8px 10px;
+  }
+  .key {
+    background: white;
+    border-radius: 3px;
+    box-shadow: 0 2px 0 #aaa;
+  }
+  .key.wide { grid-column: span 3; }
+  .key.space { grid-column: span 8; background: #ECEFF1; }
+
+  /* 마우스 */
+  .mouse {
+    position: absolute;
+    bottom: 8px; right: 0;
+    width: 68px; height: 106px;
+    background: linear-gradient(160deg, #ECEFF1, #CFD8DC);
+    border-radius: 34px 34px 28px 28px;
+    box-shadow: 4px 4px 10px rgba(0,0,0,0.2);
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: flex-start; padding-top: 10px; gap: 6px;
+  }
+  .mouse-line {
+    width: 2px; height: 22px;
+    background: #90A4AE;
+    border-radius: 2px;
+  }
+  .mouse-btn-row {
+    display: flex; gap: 4px;
+  }
+  .mouse-btn {
+    width: 26px; height: 26px;
+    background: #fff;
+    border-radius: 12px 12px 4px 4px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .mouse-scroll {
+    width: 10px; height: 18px;
+    background: var(--orange);
+    border-radius: 5px;
+    margin-top: -2px;
+  }
+
+  /* 라벨 화살표 */
+  .label-wrap {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--navy);
+    background: white;
+    border-radius: 20px;
+    padding: 5px 12px;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.12);
+    white-space: nowrap;
+  }
+  .label-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ══════════════════════════════
+     슬라이드 4 – 마우스 사용법
+  ══════════════════════════════ */
+  .slide-mouse { background: linear-gradient(160deg, #FFF3E0 0%, #FCE4EC 100%); }
+
+  .mouse-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    max-width: 900px;
+    width: 100%;
+  }
+  .mouse-card {
+    background: white;
+    border-radius: 22px;
+    padding: 26px 14px;
+    text-align: center;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.08);
+    transition: transform 0.2s;
+  }
+  .mouse-card:hover { transform: translateY(-8px) rotate(-1deg); }
+  .mouse-card .m-icon { font-size: 52px; margin-bottom: 10px; }
+  .mouse-card .m-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--navy);
+    margin-bottom: 6px;
+  }
+  .mouse-card .m-desc {
+    font-size: 13px;
+    color: #666;
+    font-weight: 700;
+    line-height: 1.5;
+  }
+  .mouse-card.c1 { border-top: 6px solid var(--coral); }
+  .mouse-card.c2 { border-top: 6px solid var(--sky); }
+  .mouse-card.c3 { border-top: 6px solid var(--grass); }
+  .mouse-card.c4 { border-top: 6px solid var(--purple); }
+
+  /* ══════════════════════════════
+     슬라이드 5 – 키보드
+  ══════════════════════════════ */
+  .slide-keyboard { background: linear-gradient(160deg, #EDE7F6 0%, #E8EAF6 100%); }
+
+  .kb-visual {
+    background: #546E7A;
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow: 0 8px 0 #37474F;
+    margin-bottom: 22px;
+  }
+  .kb-row {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 5px;
+    justify-content: center;
+  }
+  .k {
+    background: #ECEFF1;
+    border-radius: 5px;
+    box-shadow: 0 3px 0 #90A4AE;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--navy);
+    width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .k.special {
+    background: var(--navy);
+    color: white;
+    font-size: 9px;
+  }
+  .k.spacebar {
+    width: 200px;
+    background: white;
+  }
+  .k.highlight {
+    background: var(--sun);
+    color: var(--navy);
+    animation: keyPop 1.2s infinite;
+  }
+  @keyframes keyPop {
+    0%,100% { transform: translateY(0); box-shadow: 0 3px 0 #FFA000; }
+    50%      { transform: translateY(-4px); box-shadow: 0 7px 0 #FFA000; }
+  }
+
+  .kb-tips {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 820px;
+  }
+  .kb-tip {
+    background: white;
+    border-radius: 16px;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.08);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  .kb-tip .tip-icon { font-size: 28px; }
+
+  /* ══════════════════════════════
+     슬라이드 6 – 바탕화면
+  ══════════════════════════════ */
+  .slide-desktop { background: #1565C0; }
+  .slide-desktop .slide-header { color: white; }
+  .slide-desktop .slide-header .badge { background: var(--sun); color: var(--navy); }
+
+  .desktop-demo {
+    width: 680px;
+    height: 360px;
+    background: linear-gradient(135deg, #1976D2 0%, #0D47A1 100%);
+    border-radius: 16px;
+    border: 4px solid rgba(255,255,255,0.3);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+
+  /* 배경 풍경 */
+  .desktop-bg-hills {
+    position: absolute;
+    bottom: 32px; left: 0; right: 0;
+    height: 100px;
+    background: linear-gradient(to top, #388E3C, #43A047);
+    border-radius: 60% 60% 0 0 / 40% 40% 0 0;
+  }
+  .desktop-bg-sky {
+    position: absolute;
+    top: 20px; left: 40px;
+    font-size: 36px;
+  }
+
+  /* 아이콘들 */
+  .d-icons {
+    position: absolute;
+    top: 20px; left: 20px;
+    display: grid;
+    grid-template-columns: repeat(2, 80px);
+    gap: 18px;
+  }
+  .d-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    transition: background 0.15s;
+  }
+  .d-icon:hover { background: rgba(255,255,255,0.2); }
+  .d-icon .di { font-size: 34px; }
+  .d-icon .dl {
+    font-size: 10px;
+    color: white;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+    font-weight: 700;
+    text-align: center;
+  }
+
+  /* 태스크바 */
+  .taskbar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 32px;
+    background: rgba(0,0,30,0.75);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 8px;
+  }
+  .taskbar .start-btn {
+    background: var(--grass);
+    color: white;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 4px;
+  }
+  .taskbar .tb-icons { display: flex; gap: 6px; margin-left: 10px; font-size: 16px; }
+  .taskbar .tb-time {
+    margin-left: auto;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  /* 라벨 포인터 */
+  .d-label {
+    position: absolute;
+    background: var(--sun);
+    color: var(--navy);
+    font-size: 12px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 12px;
+    box-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+    white-space: nowrap;
+  }
+  .d-label::after {
+    content: '';
+    position: absolute;
+    border: 6px solid transparent;
+  }
+  .d-label.arrow-left::after {
+    left: -10px; top: 50%;
+    transform: translateY(-50%);
+    border-right-color: var(--sun);
+  }
+  .d-label.arrow-bottom::after {
+    bottom: -10px; left: 50%;
+    transform: translateX(-50%);
+    border-top-color: var(--sun);
+  }
+
+  /* 설명 칩 */
+  .desktop-tips {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 20px;
+    max-width: 700px;
+  }
+  .d-tip {
+    background: rgba(255,255,255,0.15);
+    color: white;
+    border-radius: 14px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .d-tip .ti { font-size: 22px; }
+
+  /* ══════════════════════════════
+     슬라이드 7 – 컴퓨터 켜고 끄기
+  ══════════════════════════════ */
+  .slide-power { background: linear-gradient(160deg, #E8F5E9 0%, #FFFDE7 100%); }
+
+  .power-steps {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    max-width: 860px;
+    width: 100%;
+  }
+  .power-step {
+    background: white;
+    border-radius: 22px;
+    padding: 28px 22px;
+    text-align: center;
+    flex: 1;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.08);
+    transition: transform 0.2s;
+  }
+  .power-step:hover { transform: translateY(-6px); }
+  .ps-num {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 800; color: white;
+    margin: 0 auto 12px;
+  }
+  .power-step .p-icon { font-size: 52px; margin-bottom: 10px; }
+  .power-step .p-title { font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 6px; }
+  .power-step .p-desc { font-size: 13px; color: #555; font-weight: 700; line-height: 1.5; }
+  .step-arrow {
+    font-size: 30px;
+    color: var(--navy);
+    margin: 0 4px;
+    flex-shrink: 0;
+    opacity: 0.4;
+  }
+
+  /* ══════════════════════════════
+     슬라이드 8 – 약속해요!
+  ══════════════════════════════ */
+  .slide-rules { background: linear-gradient(160deg, #FCE4EC 0%, #E8EAF6 100%); }
+
+  .rules-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    max-width: 860px;
+    width: 100%;
+  }
+  .rule-card {
+    background: white;
+    border-radius: 22px;
+    padding: 24px 18px;
+    text-align: center;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .rule-card .r-icon { font-size: 46px; }
+  .rule-card .r-title { font-size: 17px; font-weight: 800; color: var(--navy); }
+  .rule-card .r-desc { font-size: 13px; color: #555; font-weight: 700; line-height: 1.5; }
+  .rule-card.good { border-left: 6px solid var(--grass); }
+  .rule-card.bad  { border-left: 6px solid var(--coral); }
+
+  /* ══════════════════════════════
+     슬라이드 9 – 마무리
+  ══════════════════════════════ */
+  .slide-end {
+    background: linear-gradient(135deg, #1A1A4E 0%, #3949AB 100%);
+  }
+  .end-title {
+    font-size: 54px;
+    font-weight: 800;
+    color: white;
+    text-align: center;
+    margin-bottom: 16px;
+    line-height: 1.3;
+  }
+  .end-sub {
+    font-size: 22px;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 36px;
+    font-weight: 700;
+  }
+  .end-stars {
+    display: flex;
+    gap: 14px;
+    font-size: 52px;
+    animation: spin-stars 3s infinite;
+  }
+  @keyframes spin-stars {
+    0%,100% { transform: rotate(-4deg) scale(1); }
+    50%      { transform: rotate(4deg) scale(1.08); }
+  }
+  .end-badge-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .end-badge {
+    background: rgba(255,255,255,0.15);
+    color: white;
+    border-radius: 30px;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 800;
+    border: 2px solid rgba(255,255,255,0.3);
+  }
+</style>
+</head>
+<body>
+
+<div class="slideshow">
+
+  <!-- ──────────────────────────────
+       슬라이드 1: 타이틀
+  ────────────────────────────── -->
+  <div class="slide slide-title active">
+    <div class="title-stars">
+      <span class="star" style="top:8%;left:6%;animation-delay:.3s">⭐</span>
+      <span class="star" style="top:15%;right:8%;animation-delay:.8s">🌟</span>
+      <span class="star" style="bottom:20%;left:5%;animation-delay:1.2s">✨</span>
+      <span class="star" style="bottom:12%;right:10%;animation-delay:.5s">⭐</span>
+      <span class="star" style="top:40%;right:4%;animation-delay:1.5s">🌟</span>
+      <span class="star" style="top:60%;left:3%;animation-delay:.2s">✨</span>
+    </div>
+    <div class="title-bubble">🖥️ 컴퓨터를 배워요!</div>
+    <div class="title-sub">컴퓨터는 내 새로운 친구예요 💛</div>
+    <div class="title-icons">💻🖱️⌨️🖨️</div>
+    <div style="margin-top:36px;font-size:18px;font-weight:800;color:#555;">초등학교 1학년 · 컴퓨터 첫걸음</div>
+  </div>
+
+  <!-- ──────────────────────────────
+       슬라이드 2: 컴퓨터 가족
+  ────────────────────────────── -->
+  <div class="slide slide-family">
+    <div class="slide-header">
+      <span class="badge">2</span>
+      컴퓨터에는 어떤 친구들이 있을까요?
+    </div>
+    <div class="family-grid">
+      <div class="family-card highlight">
+        <div class="icon">🖥️</div>
+        <div class="name">모니터</div>
+        <div class="desc">화면을 보여줘요.<br>TV처럼 생겼어요!</div>
+      </div>
+      <div class="family-card">
+        <div class="icon">🗄️</div>
+        <div class="name">본체 (CPU)</div>
+        <div class="desc">컴퓨터의 뇌예요.<br>생각하는 곳이에요!</div>
+      </div>
+      <div class="family-card">
+        <div class="icon">⌨️</div>
+        <div class="name">키보드</div>
+        <div class="desc">글자를 써요.<br>손가락으로 두드려요!</div>
+      </div>
+      <div class="family-card">
+        <div class="icon">🖱️</div>
+        <div class="name">마우스</div>
+        <div class="desc">화면을 움직여요.<br>클릭클릭!</div>
+      </div>
+      <div class="family-card">
+        <div class="icon">🖨️</div>
+        <div class="name">프린터</div>
+        <div class="desc">종이에 인쇄해요.<br>꼭 필요할 때 써요!</div>
+      </div>
+      <div class="family-card">
+        <div class="icon">🔊</div>
+        <div class="name">스피커</div>
+        <div class="desc">소리가 나와요.<br>음악도 들려요!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────
+       슬라이드 3: 컴퓨터 각 부분 그림
+  ────────────────────────────── -->
+  <div class="slide slide-parts">
+    <div class="slide-header">
+      <span class="badge">3</span>
+      각 부분을 살펴봐요!
+    </div>
+    <div style="position:relative;">
+      <div class="computer-diagram">
+        <!-- 본체 -->
+        <div class="tower">
+          <div class="power-btn"></div>
+          <div class="disk-slot"></div>
+          <div class="usb-slot"></div>
+          <div class="usb-slot"></div>
+        </div>
+        <!-- 모니터 -->
+        <div class="mon-outer">
+          <div class="mon-screen">🌈</div>
+        </div>
+        <div class="mon-stand"></div>
+        <div class="mon-base"></div>
+        <!-- 키보드 -->
+        <div class="keyboard">
+          <div class="key"></div><div class="key"></div><div class="key"></div><div class="key"></div>
+          <div class="key"></div><div class="key"></div><div class="key"></div><div class="key"></div>
+          <div class="key"></div><div class="key"></div><div class="key"></div><div class="key"></div>
+          <div class="key"></div><div class="key"></div><div class="key"></div><div class="key"></div>
+          <div class="key"></div><div class="key"></div><div class="key"></div><div class="key"></div>
+          <div class="key"></div><div class="key"></div><div class="key"></div><div class="key"></div>
+          <div class="key special">Ctrl</div><div class="key space"></div><div class="key special">Enter</div>
+        </div>
+        <!-- 마우스 -->
+        <div class="mouse">
+          <div class="mouse-btn-row">
+            <div class="mouse-btn"></div>
+            <div class="mouse-btn"></div>
+          </div>
+          <div class="mouse-scroll"></div>
+          <div class="mouse-line"></div>
+        </div>
+
+        <!-- 라벨 -->
+        <div class="label-wrap" style="top:-18px;left:10px;">
+          <div class="label-dot" style="background:var(--coral)"></div>본체
+        </div>
+        <div class="label-wrap" style="top:-18px;left:230px;">
+          <div class="label-dot" style="background:var(--sky)"></div>모니터
+        </div>
+        <div class="label-wrap" style="bottom:-18px;left:190px;">
+          <div class="label-dot" style="background:var(--purple)"></div>키보드
+        </div>
+        <div class="label-wrap" style="bottom:60px;right:-6px;">
+          <div class="label-dot" style="background:var(--grass)"></div>마우스
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:24px;font-size:16px;font-weight:700;color:#555;">👆 각 부분을 선생님과 함께 찾아봐요!</div>
+  </div>
+
+  <!-- ──────────────────────────────
+       슬라이드 4: 마우스 사용법
+  ────────────────────────────── -->
+  <div class="slide slide-mouse">
+    <div class="slide-header">
+      <span class="badge" style="background:var(--orange)">4</span>
+      마우스를 어떻게 쓸까요? 🖱️
+    </div>
+    <div class="mouse-cards">
+      <div class="mouse-card c1">
+        <div class="m-icon">👆</div>
+        <div class="m-title">왼쪽 클릭</div>
+        <div class="m-desc">아이콘을 선택하거나<br>버튼을 눌러요</div>
+      </div>
+      <div class="mouse-card c2">
+        <div class="m-icon">✌️</div>
+        <div class="m-title">더블 클릭</div>
+        <div class="m-desc">빠르게 두 번 눌러요<br>프로그램이 열려요</div>
+      </div>
+      <div class="mouse-card c3">
+        <div class="m-icon">🤏</div>
+        <div class="m-title">드래그</div>
+        <div class="m-desc">누른 채로 끌어요<br>파일을 옮길 수 있어요</div>
+      </div>
+      <div class="mouse-card c4">
+        <div class="m-icon">🖱️</div>
+        <div class="m-title">스크롤</div>
+        <div class="m-desc">가운데 바퀴를 굴려요<br>화면이 위아래로 움직여요</div>
+      </div>
+    </div>
+    <div style="margin-top:24px;background:white;border-radius:16px;padding:14px 24px;font-size:16px;font-weight:700;color:var(--navy);box-shadow:0 4px 0 rgba(0,0,0,0.08);">
+      💡 마우스는 오른손으로 살짝 잡아요. 힘을 너무 주지 않아도 돼요!
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────
+       슬라이드 5: 키보드
+  ────────────────────────────── -->
+  <div class="slide slide-keyboard">
+    <div class="slide-header">
+      <span class="badge" style="background:var(--purple)">5</span>
+      키보드를 배워요! ⌨️
+    </div>
+    <div class="kb-visual">
+      <div class="kb-row">
+        <div class="k">Q</div><div class="k">W</div><div class="k">E</div>
+        <div class="k">R</div><div class="k">T</div><div class="k highlight">Y</div>
+        <div class="k">U</div><div class="k">I</div><div class="k">O</div>
+        <div class="k">P</div>
+      </div>
+      <div class="kb-row">
+        <div class="k highlight">A</div><div class="k">S</div><div class="k">D</div>
+        <div class="k">F</div><div class="k">G</div><div class="k">H</div>
+        <div class="k">J</div><div class="k">K</div><div class="k highlight">L</div>
+      </div>
+      <div class="kb-row">
+        <div class="k">Z</div><div class="k">X</div><div class="k">C</div>
+        <div class="k">V</div><div class="k">B</div><div class="k">N</div>
+        <div class="k highlight">M</div>
+        <div class="k special" style="width:60px">Delete</div>
+      </div>
+      <div class="kb-row">
+        <div class="k special">Ctrl</div>
+        <div class="k spacebar">스페이스 (띄어쓰기)</div>
+        <div class="k special" style="width:60px">Enter</div>
+      </div>
+    </div>
+    <div class="kb-tips">
+      <div class="kb-tip"><span class="ti">⎵</span> 스페이스 = 띄어쓰기</div>
+      <div class="kb-tip"><span class="ti">⏎</span> 엔터 = 줄바꿈·확인</div>
+      <div class="kb-tip"><span class="ti">⌫</span> 딜리트 = 지우기</div>
+      <div class="kb-tip"><span class="ti">🔠</span> 노란 키 = 자주 쓰는 키!</div>
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────
+       슬라이드 6: 바탕화면
+  ────────────────────────────── -->
+  <div class="slide slide-desktop">
+    <div class="slide-header">
+      <span class="badge">6</span>
+      바탕화면을 알아봐요! 🖥️
+    </div>
+    <div class="desktop-demo">
+      <div class="desktop-bg-hills"></div>
+      <div class="desktop-bg-sky">☁️&nbsp;&nbsp;☀️&nbsp;&nbsp;☁️</div>
+
+      <!-- 아이콘 -->
+      <div class="d-icons">
+        <div class="d-icon"><div class="di">📁</div><div class="dl">내 파일</div></div>
+        <div class="d-icon"><div class="di">🌐</div><div class="dl">인터넷</div></div>
+        <div class="d-icon"><div class="di">🎨</div><div class="dl">그림판</div></div>
+        <div class="d-icon"><div class="di">🗑️</div><div class="dl">휴지통</div></div>
+      </div>
+
+      <!-- 라벨 -->
+      <div class="d-label arrow-left" style="top:22px;left:210px;">바탕화면 배경</div>
+      <div class="d-label arrow-left" style="top:110px;left:210px;">아이콘</div>
+      <div class="d-label arrow-bottom" style="bottom:46px;left:200px;">작업 표시줄</div>
+
+      <!-- 태스크바 -->
+      <div class="taskbar">
+        <div class="start-btn">시작</div>
+        <div class="tb-icons">📁 🌐 🎨</div>
+        <div class="tb-time">오전 9:00</div>
+      </div>
+    </div>
+    <div class="desktop-tips">
+      <div class="d-tip"><span class="ti">🖼️</span> 배경 그림은 바꿀 수 있어요</div>
+      <div class="d-tip"><span class="ti">📂</span> 아이콘을 더블클릭하면 열려요</div>
+      <div class="d-tip"><span class="ti">📌</span> 아래 막대 = 작업 표시줄</div>
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────
+       슬라이드 7: 켜고 끄기
+  ────────────────────────────── -->
+  <div class="slide slide-power">
+    <div class="slide-header">
+      <span class="badge" style="background:var(--grass)">7</span>
+      컴퓨터를 켜고 끄는 방법
+    </div>
+    <div class="power-steps">
+      <div class="power-step">
+        <div class="ps-num" style="background:var(--sky)">1</div>
+        <div class="p-icon">🔌</div>
+        <div class="p-title">전원 확인</div>
+        <div class="p-desc">전원 코드가<br>잘 꽂혀 있는지<br>확인해요</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="power-step">
+        <div class="ps-num" style="background:var(--coral)">2</div>
+        <div class="p-icon">🟢</div>
+        <div class="p-title">전원 버튼 켜기</div>
+        <div class="p-desc">본체의 동그란<br>버튼을 한 번<br>눌러요</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="power-step">
+        <div class="ps-num" style="background:var(--purple)">3</div>
+        <div class="p-icon">⏳</div>
+        <div class="p-title">기다리기</div>
+        <div class="p-desc">바탕화면이<br>나올 때까지<br>기다려요</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="power-step" style="border:3px solid var(--coral)">
+        <div class="ps-num" style="background:var(--coral)">끄기</div>
+        <div class="p-icon">🔴</div>
+        <div class="p-title">시작 → 종료</div>
+        <div class="p-desc">꼭! 시작 메뉴에서<br>'종료'를 눌러요<br>그냥 끄면 안 돼요!</div>
+      </div>
+    </div>
+    <div style="margin-top:22px;background:var(--coral);color:white;border-radius:16px;padding:14px 28px;font-size:16px;font-weight:800;">
+      ⚠️ 전원 버튼을 길게 누르거나 그냥 뽑으면 컴퓨터가 아파요!
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────
+       슬라이드 8: 컴퓨터 약속
+  ────────────────────────────── -->
+  <div class="slide slide-rules">
+    <div class="slide-header">
+      <span class="badge" style="background:var(--purple)">8</span>
+      컴퓨터 교실 약속해요! 🤝
+    </div>
+    <div class="rules-grid">
+      <div class="rule-card good">
+        <div class="r-icon">🙌</div>
+        <div class="r-title">두 손을 무릎 위에</div>
+        <div class="r-desc">선생님 말씀 들을 때는<br>키보드에서 손을 떼요</div>
+      </div>
+      <div class="rule-card good">
+        <div class="r-icon">💻</div>
+        <div class="r-title">소중히 다루기</div>
+        <div class="r-desc">키보드·마우스를<br>세게 치지 않아요</div>
+      </div>
+      <div class="rule-card good">
+        <div class="r-icon">🚶</div>
+        <div class="r-title">천천히 걷기</div>
+        <div class="r-desc">컴퓨터 주변에서는<br>뛰지 않아요</div>
+      </div>
+      <div class="rule-card bad">
+        <div class="r-icon">🚫</div>
+        <div class="r-title">음식 반입 금지</div>
+        <div class="r-desc">컴퓨터 위에 음식이나<br>음료를 올리지 않아요</div>
+      </div>
+      <div class="rule-card bad">
+        <div class="r-icon">🛑</div>
+        <div class="r-title">허락 없이 끄지 않기</div>
+        <div class="r-desc">선생님 허락 없이<br>전원을 끄지 않아요</div>
+      </div>
+      <div class="rule-card good">
+        <div class="r-icon">🏁</div>
+        <div class="r-title">마치면 정리하기</div>
+        <div class="r-desc">수업이 끝나면<br>의자를 넣고 자리 정리!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────
+       슬라이드 9: 마무리
+  ────────────────────────────── -->
+  <div class="slide slide-end">
+    <div class="end-stars">🌟⭐🌟</div>
+    <div style="height:24px"></div>
+    <div class="end-title">오늘 배운 것을<br>기억해요!</div>
+    <div class="end-sub">컴퓨터는 내 멋진 친구예요 🤝</div>
+    <div class="end-badge-row">
+      <div class="end-badge">🖥️ 모니터</div>
+      <div class="end-badge">🗄️ 본체</div>
+      <div class="end-badge">⌨️ 키보드</div>
+      <div class="end-badge">🖱️ 마우스</div>
+      <div class="end-badge">🖼️ 바탕화면</div>
+      <div class="end-badge">🔌 켜고 끄기</div>
+    </div>
+    <div style="margin-top:32px;font-size:48px;animation:spin-stars 2s infinite;">🎉🎊🎉</div>
+  </div>
+
+</div><!-- end slideshow -->
+
+<!-- 내비게이션 -->
+<div class="nav">
+  <button id="prevBtn" onclick="changeSlide(-1)">◀</button>
+  <span class="page-info" id="pageInfo">1 / 9</span>
+  <button id="nextBtn" onclick="changeSlide(1)">▶</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  let cur = 0;
+
+  function changeSlide(dir) {
+    slides[cur].classList.remove('active');
+    cur = (cur + dir + slides.length) % slides.length;
+    slides[cur].classList.add('active');
+    document.getElementById('pageInfo').textContent = (cur + 1) + ' / ' + slides.length;
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   changeSlide(-1);
+  });
+</script>
+</body>
+</html>
