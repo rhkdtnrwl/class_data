@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>코딩 놀이터 🎮</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Jua&family=Nanum+Gothic:wght@400;700;800&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Nanum Gothic', sans-serif;
+  background: #FFF9F0;
+  color: #1a1a1a;
+  overflow-x: hidden;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  background: white;
+  box-shadow: 0 3px 20px rgba(0,0,0,0.1);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; height: 66px;
+}
+.logo {
+  font-family: 'Jua', sans-serif; font-size: 22px; color: #FF6B35;
+  display: flex; align-items: center; gap: 6px;
+}
+.nav-tabs { display: flex; gap: 6px; }
+.tab {
+  padding: 8px 18px; border-radius: 50px; border: none;
+  font-family: 'Jua', sans-serif; font-size: 15px;
+  cursor: pointer; transition: all .2s; background: #F3F4F6; color: #9CA3AF;
+}
+.tab.on { color: white; transform: scale(1.05); }
+.tab-h.on { background: #FF6B35; }
+.tab-v.on { background: #FF6B35; }
+.tab-l.on { background: #2EC4B6; }
+.tab-f.on { background: #3A86FF; }
+.tab-s.on { background: #8B5CF6; }
+
+/* ── PAGE ── */
+.page { display: none; min-height: 100vh; padding: 86px 20px 100px; animation: up .4s ease; }
+.page.on { display: block; }
+@keyframes up { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+.wrap { max-width: 860px; margin: 0 auto; }
+
+/* ── HERO ── */
+.hero { text-align: center; padding: 28px 0 36px; }
+.hero-emoji { font-size: 72px; display: block; margin-bottom: 12px; animation: bounce 2s infinite; }
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+.hero-title { font-family: 'Jua', sans-serif; font-size: clamp(32px,7vw,64px); line-height: 1.2; }
+.hero-sub { font-size: 18px; color: #6B7280; margin-top: 10px; line-height: 1.8; }
+
+/* ── BADGE ── */
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 20px; border-radius: 50px;
+  font-family: 'Jua', sans-serif; font-size: 14px; margin-bottom: 12px;
+}
+.badge-v { background: #FFF0E8; color: #FF6B35; border: 2px solid #FF6B35; }
+.badge-l { background: #E6FAF9; color: #2EC4B6; border: 2px solid #2EC4B6; }
+.badge-f { background: #EEF4FF; color: #3A86FF; border: 2px solid #3A86FF; }
+
+.page-title { font-family: 'Jua', sans-serif; font-size: clamp(26px,5vw,46px); margin-bottom: 8px; }
+.page-desc  { font-size: 17px; color: #555; line-height: 1.9; margin-bottom: 32px; }
+.center { text-align: center; }
+
+/* ── CARD ── */
+.card {
+  background: white; border-radius: 28px;
+  padding: 28px; box-shadow: 0 6px 24px rgba(0,0,0,0.07);
+  margin-bottom: 22px; border: 2px solid #F3F4F6;
+}
+.card-title {
+  font-family: 'Jua', sans-serif; font-size: 21px; margin-bottom: 20px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* ── HOME CARDS ── */
+.home-grid {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 18px; max-width: 780px; margin: 0 auto 36px;
+}
+.home-card {
+  background: white; border-radius: 28px; padding: 30px 18px;
+  cursor: pointer; text-align: center; transition: all .25s;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.08); border: 3px solid transparent;
+}
+.home-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 16px 40px rgba(0,0,0,0.14); }
+.hc-v { border-color: #FF6B35; }
+.hc-l { border-color: #2EC4B6; }
+.hc-f { border-color: #3A86FF; }
+.hc-big-emoji { font-size: 60px; display: block; margin-bottom: 10px; }
+.hc-num { font-size: 11px; font-weight: 800; color: #D1D5DB; letter-spacing: 3px; margin-bottom: 6px; }
+.hc-title { font-family: 'Jua', sans-serif; font-size: 28px; margin-bottom: 8px; }
+.hc-v .hc-title { color: #FF6B35; }
+.hc-l .hc-title { color: #2EC4B6; }
+.hc-f .hc-title { color: #3A86FF; }
+.hc-desc { font-size: 14px; color: #9CA3AF; line-height: 1.7; }
+
+/* ── BIG BTN ── */
+.bigbtn {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 16px 44px; border-radius: 50px; border: none; cursor: pointer;
+  font-family: 'Jua', sans-serif; font-size: 21px; color: white;
+  transition: all .2s; box-shadow: 0 6px 20px rgba(0,0,0,.2);
+}
+.bigbtn:hover { transform: scale(1.06); }
+.btn-orange { background: linear-gradient(135deg,#FF6B35,#FF8E53); box-shadow: 0 6px 20px rgba(255,107,53,.4); }
+.btn-teal   { background: linear-gradient(135deg,#2EC4B6,#44DDD5); box-shadow: 0 6px 20px rgba(46,196,182,.4); }
+.btn-blue   { background: linear-gradient(135deg,#3A86FF,#60A5FA); box-shadow: 0 6px 20px rgba(58,134,255,.4); }
+.btn-purple { background: linear-gradient(135deg,#8B5CF6,#A78BFA); box-shadow: 0 6px 20px rgba(139,92,246,.4); }
+.btn-gray   { background: linear-gradient(135deg,#6B7280,#9CA3AF); }
+
+/* ── GRID ── */
+.g2 { display: grid; grid-template-columns:1fr 1fr; gap:18px; }
+.g3 { display: grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+
+/* ════════════════════
+   변수 PAGE
+════════════════════ */
+
+/* 상자 시각화 */
+.box-wrap { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+.mybox {
+  width: 160px; border-radius: 20px; overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0,0,0,.12); transition: transform .2s; cursor: default;
+}
+.mybox:hover { transform: translateY(-8px) rotate(-2deg); }
+.box-label {
+  padding: 12px; text-align: center; font-family: 'Jua', sans-serif;
+  font-size: 16px; color: white;
+}
+.box-value {
+  padding: 24px 10px; background: #FAFAFA; text-align: center;
+  font-family: 'Jua', sans-serif; font-size: 26px; line-height: 1.3;
+}
+.bx1 { --c:#FF6B35; } .bx2 { --c:#FF6B9D; } .bx3 { --c:#3A86FF; } .bx4 { --c:#2EC4B6; }
+.box-label { background: var(--c); }
+.box-value { color: var(--c); }
+
+/* = 설명 */
+.eq-row { display:flex; align-items:center; justify-content:center; gap:16px; flex-wrap:wrap; }
+.eq-box { border-radius:18px; padding:18px 26px; text-align:center; min-width:120px; }
+.eq-left  { background:#FFF0E8; border:3px solid #FF6B35; }
+.eq-right { background:#E6FAF9; border:3px solid #2EC4B6; }
+.eq-sign  { font-family:'Jua',sans-serif; font-size:52px; color:#D1D5DB; }
+.eq-lbl   { font-size:12px; font-weight:800; color:#9CA3AF; margin-bottom:6px; letter-spacing:1px; }
+.eq-val   { font-family:'Jua',sans-serif; font-size:26px; }
+
+/* 담을 수 있는 것 */
+.thing-row { display:flex; flex-wrap:wrap; gap:14px; justify-content:center; }
+.thing {
+  border-radius:18px; padding:20px 18px; text-align:center; flex:1; min-width:140px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.08); transition:transform .2s;
+}
+.thing:hover { transform:translateY(-5px); }
+.thing-icon { font-size:42px; margin-bottom:10px; }
+.thing-name { font-family:'Jua',sans-serif; font-size:19px; margin-bottom:6px; }
+.thing-ex   { font-size:14px; color:#6B7280; line-height:1.7; }
+.th1 { background:#EFF6FF; }
+.th2 { background:#FFF0E8; }
+.th3 { background:#F5F3FF; }
+
+/* 엔트리 팁 박스 */
+.entry-tip {
+  background: linear-gradient(135deg,#EFF6FF,#E6FAF9);
+  border: 2.5px solid #3A86FF; border-radius: 18px;
+  padding: 16px 20px; display:flex; gap:14px; align-items:flex-start;
+  margin-bottom: 18px;
+}
+.entry-tip-icon { font-size:32px; flex-shrink:0; }
+.entry-tip-text { font-size:15px; line-height:1.9; color:#374151; }
+
+/* ════════════════════
+   리스트 PAGE
+════════════════════ */
+.shelf-row {
+  display:flex; gap:12px; justify-content:center; flex-wrap:wrap; align-items:flex-end;
+}
+.shelf-item { display:flex; flex-direction:column; align-items:center; gap:8px; }
+.shelf-box {
+  width:95px; border-radius:16px; border:3px solid #2EC4B6;
+  background:white; padding:16px 8px; text-align:center;
+  box-shadow: 0 4px 14px rgba(46,196,182,.2);
+  font-family:'Jua',sans-serif; font-size:22px;
+  transition:transform .2s; cursor:default;
+}
+.shelf-box:hover { transform:translateY(-8px); }
+.shelf-num {
+  background:#2EC4B6; color:white; border-radius:8px;
+  padding:5px 14px; font-size:14px; font-weight:800;
+}
+.shelf-arrow { font-size:26px; color:#D1D5DB; padding-bottom:28px; }
+
+/* ════════════════════
+   함수 PAGE
+════════════════════ */
+.vending-wrap {
+  display:flex; align-items:center; gap:12px; justify-content:center; flex-wrap:wrap;
+}
+.v-box { border-radius:22px; padding:22px 18px; text-align:center; flex:1; min-width:140px; }
+.v-in   { background:#EFF6FF; border:3px solid #3A86FF; }
+.v-func { background:#1E1E2E; border:3px solid #8B5CF6; color:white; }
+.v-out  { background:#F0FDF4; border:3px solid #2EC4B6; }
+.v-lbl  { font-size:12px; font-weight:800; letter-spacing:1px; margin-bottom:8px; color:#9CA3AF; }
+.v-func .v-lbl { color:#6B7280; }
+.v-val  { font-family:'Jua',sans-serif; font-size:17px; line-height:1.8; }
+.v-in  .v-val { color:#3A86FF; }
+.v-func .v-val { color:#A78BFA; }
+.v-out .v-val  { color:#2EC4B6; }
+.v-arrow { font-size:34px; color:#D1D5DB; flex-shrink:0; }
+
+.repeat-box {
+  background:white; border-radius:12px; padding:11px 16px; margin-bottom:8px;
+  font-size:15px; font-weight:700; box-shadow:0 2px 8px rgba(0,0,0,.07);
+  display:flex; align-items:center; gap:8px;
+}
+.func-btn {
+  padding:14px 18px; border-radius:12px; background:#3A86FF; color:white;
+  font-family:'Jua',sans-serif; font-size:16px; text-align:center;
+  box-shadow:0 4px 12px rgba(58,134,255,.35); margin-bottom:8px;
+}
+.func-call {
+  padding:11px 16px; background:white; border-radius:10px;
+  font-size:14px; font-weight:700; color:#6B7280;
+  box-shadow:0 2px 8px rgba(0,0,0,.07); margin-bottom:6px;
+  display:flex; align-items:center; gap:8px;
+}
+
+/* ════════════════════
+   SUMMARY PAGE
+════════════════════ */
+.sum-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:22px; margin-bottom:32px; }
+.sum-card {
+  background:white; border-radius:26px; padding:30px 18px; text-align:center;
+  box-shadow:0 6px 24px rgba(0,0,0,.09); transition:transform .2s;
+}
+.sum-card:hover { transform:translateY(-8px); }
+.sc-v { border-top:6px solid #FF6B35; }
+.sc-l { border-top:6px solid #2EC4B6; }
+.sc-f { border-top:6px solid #3A86FF; }
+.sc-emoji { font-size:52px; margin-bottom:14px; }
+.sc-title { font-family:'Jua',sans-serif; font-size:28px; margin-bottom:6px; }
+.sc-v .sc-title { color:#FF6B35; }
+.sc-l .sc-title { color:#2EC4B6; }
+.sc-f .sc-title { color:#3A86FF; }
+.sc-keyword {
+  display:inline-block; background:#F3F4F6; border-radius:10px;
+  padding:5px 16px; font-family:'Jua',sans-serif; font-size:16px;
+  font-weight:800; margin:8px 0; color:#374151;
+}
+.sc-list { list-style:none; text-align:left; margin-top:14px; }
+.sc-list li {
+  padding:9px 0; border-bottom:1px solid #F0F0F0;
+  font-size:14px; color:#6B7280; display:flex; gap:8px;
+}
+.sc-list li:last-child { border-bottom:none; }
+.sc-list li::before { content:"⭐"; flex-shrink:0; }
+
+.final-banner {
+  background:linear-gradient(135deg,#FF6B35,#FF6B9D,#3A86FF);
+  color:white; border-radius:24px; padding:26px 36px;
+  font-family:'Jua',sans-serif; font-size:24px; text-align:center;
+  box-shadow:0 10px 32px rgba(255,107,53,.4); line-height:1.6;
+}
+
+/* ── PROGRESS BAR ── */
+.prog-bar {
+  position:fixed; bottom:0; left:0; right:0;
+  background:white; border-top:2px solid #F3F4F6;
+  display:flex; align-items:center; justify-content:center; gap:4px;
+  padding:10px 16px; z-index:200;
+}
+.ps {
+  padding:7px 16px; border-radius:50px; font-family:'Jua',sans-serif; font-size:14px;
+  color:#D1D5DB; cursor:pointer; transition:all .2s;
+}
+.ps.done { color:white; }
+.ps-v.done { background:#FF6B35; }
+.ps-l.done { background:#2EC4B6; }
+.ps-f.done { background:#3A86FF; }
+.ps-s.done { background:#8B5CF6; }
+.ps-sep { color:#E5E7EB; font-size:18px; }
+
+/* ── 반응형 ── */
+@media (max-width:640px) {
+  .home-grid, .sum-grid, .g3 { grid-template-columns:1fr; }
+  .g2 { grid-template-columns:1fr; }
+  nav { padding:0 12px; }
+  .tab { padding:6px 10px; font-size:13px; }
+}
+
+/* 퀴즈 */
+.quiz-wrap { display:flex; flex-direction:column; gap:10px; }
+.quiz-btn {
+  padding:14px 20px; border-radius:14px; border:2.5px solid #E5E7EB;
+  background:white; font-family:'Jua',sans-serif; font-size:17px;
+  cursor:pointer; transition:all .2s; text-align:left;
+  display:flex; align-items:center; gap:10px;
+}
+.quiz-btn:hover { border-color:#3A86FF; background:#EFF6FF; transform:translateX(6px); }
+.quiz-btn.correct { border-color:#22C55E; background:#F0FDF4; color:#16A34A; }
+.quiz-btn.wrong   { border-color:#EF4444; background:#FEF2F2; color:#DC2626; }
+.quiz-result {
+  margin-top:14px; padding:14px 20px; border-radius:14px;
+  font-family:'Jua',sans-serif; font-size:17px; text-align:center; display:none;
+}
+.quiz-result.show { display:block; animation:up .3s ease; }
+.qr-ok  { background:#F0FDF4; color:#16A34A; border:2px solid #22C55E; }
+.qr-no  { background:#FEF2F2; color:#DC2626; border:2px solid #EF4444; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">🎮 코딩 놀이터</div>
+  <div class="nav-tabs">
+    <button class="tab tab-h on" onclick="go('home')">🏠 홈</button>
+    <button class="tab tab-v"   onclick="go('variable')">📦 변수</button>
+    <button class="tab tab-l"   onclick="go('list')">🗃️ 리스트</button>
+    <button class="tab tab-f"   onclick="go('func')">⚙️ 함수</button>
+    <button class="tab tab-s"   onclick="go('summary')">🏆 정리</button>
+  </div>
+</nav>
+
+
+<!-- ══════════════ HOME ══════════════ -->
+<div id="home" class="page on">
+  <div class="hero">
+    <span class="hero-emoji">🎮</span>
+    <div class="hero-title">코딩 놀이터!</div>
+    <p class="hero-sub">
+      어렵게 생각하지 마요!<br>
+      코딩은 <strong>컴퓨터한테 말을 거는 방법</strong>이에요 😊<br>
+      오늘 세 가지만 알면 여러분도 코딩 완전 정복! 🏆
+    </p>
+  </div>
+
+  <div class="home-grid">
+    <div class="home-card hc-v" onclick="go('variable')">
+      <span class="hc-big-emoji">📦</span>
+      <div class="hc-num">STEP 01</div>
+      <div class="hc-title">변수</div>
+      <p class="hc-desc">정보를 담아두는<br>마법 상자!</p>
+    </div>
+    <div class="home-card hc-l" onclick="go('list')">
+      <span class="hc-big-emoji">🗃️</span>
+      <div class="hc-num">STEP 02</div>
+      <div class="hc-title">리스트</div>
+      <p class="hc-desc">상자를 여러 개<br>이어 붙인 것!</p>
+    </div>
+    <div class="home-card hc-f" onclick="go('func')">
+      <span class="hc-big-emoji">⚙️</span>
+      <div class="hc-num">STEP 03</div>
+      <div class="hc-title">함수</div>
+      <p class="hc-desc">버튼 하나로<br>뚝딱 해결!</p>
+    </div>
+  </div>
+
+  <div class="center">
+    <button class="bigbtn btn-orange" onclick="go('variable')">📦 시작하기! →</button>
+  </div>
+</div>
+
+
+<!-- ══════════════ VARIABLE ══════════════ -->
+<div id="variable" class="page">
+  <div class="wrap">
+    <div class="center">
+      <span class="badge badge-v">📦 STEP 01 · 변수</span>
+      <div class="page-title">변수 = 마법 상자! 📦</div>
+      <p class="page-desc">
+        변수는 <strong>정보를 넣어두는 상자</strong>예요.<br>
+        상자에 이름을 붙여두면 나중에 꺼내 쓸 수 있어요!
+      </p>
+    </div>
+
+    <!-- 상자 시각화 -->
+    <div class="card">
+      <div class="card-title">🗳️ 상자에 정보를 넣어봐요!</div>
+      <div class="box-wrap">
+        <div class="mybox bx1">
+          <div class="box-label">이름 상자</div>
+          <div class="box-value">민준 😄</div>
+        </div>
+        <div class="mybox bx2">
+          <div class="box-label">나이 상자</div>
+          <div class="box-value">10살 🎂</div>
+        </div>
+        <div class="mybox bx3">
+          <div class="box-label">점수 상자</div>
+          <div class="box-value">100점 ⭐</div>
+        </div>
+        <div class="mybox bx4">
+          <div class="box-label">반 이름 상자</div>
+          <div class="box-value">3학년 2반</div>
+        </div>
+      </div>
+      <div style="background:#FFFBEB; border-radius:16px; padding:14px 20px; margin-top:20px; display:flex; gap:12px; align-items:center;">
+        <span style="font-size:26px;">💡</span>
+        <div style="font-size:16px; line-height:1.8; color:#374151;">
+          상자 겉에 <strong>이름</strong>을 붙이고, 안에 <strong>값</strong>을 넣어요!<br>
+          나중에 "이름 상자 꺼내줘!" 하면 → <strong>민준</strong>이 나와요 😊
+        </div>
+      </div>
+    </div>
+
+    <!-- = 의 의미 -->
+    <div class="card">
+      <div class="card-title">💡 = 는 수학이랑 달라요!</div>
+      <div class="eq-row">
+        <div class="eq-box eq-left">
+          <div class="eq-lbl">상자 이름</div>
+          <div class="eq-val" style="color:#FF6B35; font-family:'Jua',sans-serif; font-size:26px;">이름</div>
+        </div>
+        <div class="eq-sign">=</div>
+        <div class="eq-box eq-right">
+          <div class="eq-lbl">넣을 값</div>
+          <div class="eq-val" style="color:#2EC4B6; font-family:'Jua',sans-serif; font-size:26px;">"민준"</div>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:20px;">
+        <div style="background:#FEF2F2; border-radius:14px; padding:16px; text-align:center;">
+          <div style="font-size:22px; margin-bottom:6px;">❌</div>
+          <div style="font-family:'Jua',sans-serif; font-size:16px; color:#EF4444; margin-bottom:4px;">수학에서 =</div>
+          <div style="font-size:14px; color:#6B7280;">"같다"는 뜻</div>
+        </div>
+        <div style="background:#F0FDF4; border-radius:14px; padding:16px; text-align:center;">
+          <div style="font-size:22px; margin-bottom:6px;">✅</div>
+          <div style="font-family:'Jua',sans-serif; font-size:16px; color:#22C55E; margin-bottom:4px;">코딩에서 =</div>
+          <div style="font-size:14px; color:#6B7280;">"상자에 넣는다"는 뜻!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 상자에 뭘 담을 수 있나 -->
+    <div class="card">
+      <div class="card-title">🎒 상자에는 뭐든 넣을 수 있어요!</div>
+      <div class="thing-row">
+        <div class="thing th1">
+          <div class="thing-icon">🔢</div>
+          <div class="thing-name">숫자</div>
+          <div class="thing-ex">나이: <strong>10</strong><br>점수: <strong>95</strong></div>
+        </div>
+        <div class="thing th2">
+          <div class="thing-icon">💬</div>
+          <div class="thing-name">글자</div>
+          <div class="thing-ex">이름: <strong>"민준"</strong><br>반: <strong>"2반"</strong></div>
+        </div>
+        <div class="thing th3">
+          <div class="thing-icon">☑️</div>
+          <div class="thing-name">맞다 / 아니다</div>
+          <div class="thing-ex">출석: <strong>맞다</strong><br>숙제함: <strong>아니다</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 엔트리 팁 -->
+    <div class="card">
+      <div class="card-title">🎮 엔트리 · 스크래치에서는요?</div>
+      <div class="entry-tip">
+        <div class="entry-tip-icon">🎮</div>
+        <div class="entry-tip-text">
+          엔트리와 스크래치에서는 <strong style="color:#3A86FF;">한국어로도</strong> 변수 이름을 지을 수 있어요!<br>
+          <span style="background:white; border-radius:8px; padding:3px 10px; font-weight:800; color:#FF6B35; font-size:15px;">점수</span>&nbsp;
+          <span style="background:white; border-radius:8px; padding:3px 10px; font-weight:800; color:#FF6B35; font-size:15px;">이름</span>&nbsp;
+          <span style="background:white; border-radius:8px; padding:3px 10px; font-weight:800; color:#FF6B35; font-size:15px;">내점수</span>&nbsp;
+          처럼요! 😊
+        </div>
+      </div>
+      <div style="display:flex; gap:14px; flex-wrap:wrap; justify-content:center;">
+        <div style="background:#FFF0E8; border:2px solid #FF6B35; border-radius:14px; padding:16px 22px; text-align:center; min-width:160px;">
+          <div style="font-size:13px; font-weight:800; color:#9CA3AF; margin-bottom:6px;">엔트리 예시 ✅</div>
+          <div style="font-family:'Jua',sans-serif; font-size:17px; color:#FF6B35; line-height:2;">
+            점수 = 100<br>이름 = "민준"<br>내생일 = "3월 5일"
+          </div>
+        </div>
+        <div style="background:#F9FAFB; border:2px solid #D1D5DB; border-radius:14px; padding:16px 22px; text-align:center; min-width:160px;">
+          <div style="font-size:13px; font-weight:800; color:#9CA3AF; margin-bottom:6px;">이름 짓기 규칙 ⚠️</div>
+          <div style="font-size:14px; color:#6B7280; line-height:2;">
+            ✔ 한글 이름 OK<br>
+            ✔ 영문자, 숫자 OK<br>
+            ✘ 빈칸은 안 돼요!
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 미니 퀴즈 -->
+    <div class="card" style="border:2.5px solid #FF6B35;">
+      <div class="card-title">🧠 퀴즈! 맞혀봐요!</div>
+      <p style="font-size:17px; font-weight:800; margin-bottom:16px; color:#374151;">
+        👉 <code style="background:#FFF0E8; padding:3px 10px; border-radius:8px; color:#FF6B35;">나이 = 10</code> 에서 <strong style="color:#FF6B35;">=</strong> 의 뜻은?
+      </p>
+      <div class="quiz-wrap" id="q1">
+        <button class="quiz-btn" onclick="checkQ('q1',this,false)">➊ 나이가 10이랑 같다</button>
+        <button class="quiz-btn" onclick="checkQ('q1',this,true)">➋ 나이 상자에 10을 넣는다</button>
+        <button class="quiz-btn" onclick="checkQ('q1',this,false)">➌ 10 더하기 나이</button>
+      </div>
+      <div id="q1-result" class="quiz-result"></div>
+    </div>
+
+    <div class="center" style="padding-top:8px;">
+      <button class="bigbtn btn-teal" onclick="go('list')">🗃️ 다음: 리스트 →</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════ LIST ══════════════ -->
+<div id="list" class="page">
+  <div class="wrap">
+    <div class="center">
+      <span class="badge badge-l">🗃️ STEP 02 · 리스트</span>
+      <div class="page-title">리스트 = 칸칸이 상자! 🗃️</div>
+      <p class="page-desc">
+        변수가 상자 하나라면,<br>
+        리스트는 <strong>상자 여러 개를 이어 붙인 것</strong>이에요!<br>
+        각 칸에 번호가 붙어 있어요 😊
+      </p>
+    </div>
+
+    <!-- 사물함 시각화 -->
+    <div class="card">
+      <div class="card-title">🏫 사물함처럼 칸칸이!</div>
+      <div class="shelf-row">
+        <div class="shelf-item">
+          <div class="shelf-box">🍎<br>사과</div>
+          <div class="shelf-num">1번</div>
+        </div>
+        <div class="shelf-arrow">→</div>
+        <div class="shelf-item">
+          <div class="shelf-box">🍌<br>바나나</div>
+          <div class="shelf-num">2번</div>
+        </div>
+        <div class="shelf-arrow">→</div>
+        <div class="shelf-item">
+          <div class="shelf-box">🍇<br>포도</div>
+          <div class="shelf-num">3번</div>
+        </div>
+        <div class="shelf-arrow">→</div>
+        <div class="shelf-item">
+          <div class="shelf-box">🍓<br>딸기</div>
+          <div class="shelf-num">4번</div>
+        </div>
+      </div>
+      <div style="background:#E6FAF9; border-radius:16px; padding:14px 20px; margin-top:20px; display:flex; gap:12px; align-items:center;">
+        <span style="font-size:26px;">💡</span>
+        <div style="font-size:16px; line-height:1.8; color:#374151;">
+          엔트리·스크래치에서는 <strong>1번부터</strong> 시작해요!<br>
+          "과일 리스트의 3번 꺼내줘!" → <strong>🍇 포도</strong>가 나와요!
+        </div>
+      </div>
+    </div>
+
+    <!-- 변수 vs 리스트 비교 -->
+    <div class="card">
+      <div class="card-title">🤔 변수 vs 리스트, 뭐가 다를까요?</div>
+      <div class="g2">
+        <div style="background:#FEF2F2; border:2.5px solid #EF4444; border-radius:18px; padding:20px;">
+          <div style="font-family:'Jua',sans-serif; font-size:17px; color:#EF4444; margin-bottom:14px;">😓 변수만 쓰면…</div>
+          <div style="background:white; border-radius:10px; padding:10px 14px; margin-bottom:8px; font-size:14px; font-weight:700;">과일1 = 🍎 사과</div>
+          <div style="background:white; border-radius:10px; padding:10px 14px; margin-bottom:8px; font-size:14px; font-weight:700;">과일2 = 🍌 바나나</div>
+          <div style="background:white; border-radius:10px; padding:10px 14px; margin-bottom:8px; font-size:14px; font-weight:700;">과일3 = 🍇 포도</div>
+          <div style="background:white; border-radius:10px; padding:10px 14px; font-size:14px; font-weight:700;">과일4 = 🍓 딸기</div>
+          <div style="font-size:13px; color:#EF4444; margin-top:10px; font-weight:700;">100개면 변수 100개?! 😱</div>
+        </div>
+        <div style="background:#E6FAF9; border:2.5px solid #2EC4B6; border-radius:18px; padding:20px;">
+          <div style="font-family:'Jua',sans-serif; font-size:17px; color:#2EC4B6; margin-bottom:14px;">😎 리스트 쓰면!</div>
+          <div style="background:white; border-radius:10px; padding:14px; font-size:14px; font-weight:700; line-height:2;">
+            <span style="color:#2EC4B6; font-weight:800;">과일</span> 리스트 =<br>
+            [🍎사과, 🍌바나나,<br>🍇포도, 🍓딸기, ...]
+          </div>
+          <div style="font-size:13px; color:#2EC4B6; margin-top:10px; font-weight:700;">100개도 리스트 하나면 OK! 😎</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 리스트로 할 수 있는 것 -->
+    <div class="card">
+      <div class="card-title">🛠️ 리스트로 이런 것도 할 수 있어요!</div>
+      <div class="g3">
+        <div style="background:#EFF6FF; border-radius:18px; padding:20px; text-align:center; box-shadow:0 3px 12px rgba(0,0,0,.07);">
+          <div style="font-size:40px; margin-bottom:8px;">➕</div>
+          <div style="font-family:'Jua',sans-serif; font-size:18px; margin-bottom:6px;">추가하기</div>
+          <div style="font-size:13px; color:#6B7280;">새 항목을<br>맨 뒤에 넣기</div>
+        </div>
+        <div style="background:#FFF0E8; border-radius:18px; padding:20px; text-align:center; box-shadow:0 3px 12px rgba(0,0,0,.07);">
+          <div style="font-size:40px; margin-bottom:8px;">➖</div>
+          <div style="font-family:'Jua',sans-serif; font-size:18px; margin-bottom:6px;">삭제하기</div>
+          <div style="font-size:13px; color:#6B7280;">원하는 항목<br>꺼내서 버리기</div>
+        </div>
+        <div style="background:#F5F3FF; border-radius:18px; padding:20px; text-align:center; box-shadow:0 3px 12px rgba(0,0,0,.07);">
+          <div style="font-size:40px; margin-bottom:8px;">🔢</div>
+          <div style="font-family:'Jua',sans-serif; font-size:18px; margin-bottom:6px;">개수 세기</div>
+          <div style="font-size:13px; color:#6B7280;">항목이<br>몇 개인지 세기</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 실생활 예시 -->
+    <div class="card">
+      <div class="card-title">🌍 우리 주변의 리스트!</div>
+      <div class="g3">
+        <div style="background:#FFF0E8; border-radius:18px; padding:18px; text-align:center;">
+          <div style="font-size:38px; margin-bottom:8px;">📱</div>
+          <div style="font-family:'Jua',sans-serif; font-size:16px; color:#FF6B35; margin-bottom:6px;">연락처 목록</div>
+          <div style="font-size:13px; color:#6B7280;">엄마, 아빠, 친구들<br>전화번호 리스트!</div>
+        </div>
+        <div style="background:#E6FAF9; border-radius:18px; padding:18px; text-align:center;">
+          <div style="font-size:38px; margin-bottom:8px;">🎵</div>
+          <div style="font-family:'Jua',sans-serif; font-size:16px; color:#2EC4B6; margin-bottom:6px;">노래 목록</div>
+          <div style="font-size:13px; color:#6B7280;">좋아하는 노래<br>플레이리스트!</div>
+        </div>
+        <div style="background:#EFF6FF; border-radius:18px; padding:18px; text-align:center;">
+          <div style="font-size:38px; margin-bottom:8px;">🏆</div>
+          <div style="font-family:'Jua',sans-serif; font-size:16px; color:#3A86FF; margin-bottom:6px;">게임 순위</div>
+          <div style="font-size:13px; color:#6B7280;">1등, 2등, 3등...<br>점수 리스트!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 퀴즈 -->
+    <div class="card" style="border:2.5px solid #2EC4B6;">
+      <div class="card-title">🧠 퀴즈! 맞혀봐요!</div>
+      <p style="font-size:17px; font-weight:800; margin-bottom:16px; color:#374151;">
+        👉 과일 리스트가 [🍎사과, 🍌바나나, 🍇포도] 일 때,<br>
+        엔트리에서 <strong style="color:#2EC4B6;">2번</strong>을 꺼내면 뭐가 나올까요?
+      </p>
+      <div class="quiz-wrap" id="q2">
+        <button class="quiz-btn" onclick="checkQ('q2',this,false)">➊ 🍎 사과</button>
+        <button class="quiz-btn" onclick="checkQ('q2',this,true)">➋ 🍌 바나나</button>
+        <button class="quiz-btn" onclick="checkQ('q2',this,false)">➌ 🍇 포도</button>
+      </div>
+      <div id="q2-result" class="quiz-result"></div>
+    </div>
+
+    <div class="center" style="padding-top:8px;">
+      <button class="bigbtn btn-blue" onclick="go('func')">⚙️ 다음: 함수 →</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════ FUNCTION ══════════════ -->
+<div id="func" class="page">
+  <div class="wrap">
+    <div class="center">
+      <span class="badge badge-f">⚙️ STEP 03 · 함수</span>
+      <div class="page-title">함수 = 마법 버튼! ⚙️</div>
+      <p class="page-desc">
+        같은 일을 반복할 때,<br>
+        그 일을 <strong>버튼 하나에 담아두는 것</strong>이에요!<br>
+        버튼을 누르면 자동으로 쫘악! 😎
+      </p>
+    </div>
+
+    <!-- 자판기 비유 -->
+    <div class="card">
+      <div class="card-title">🎰 자판기처럼 생각해봐요!</div>
+      <div class="vending-wrap">
+        <div class="v-box v-in">
+          <div class="v-lbl">📥 넣는 것</div>
+          <div class="v-val">이름 "민준"</div>
+        </div>
+        <div class="v-arrow">→</div>
+        <div class="v-box v-func">
+          <div class="v-lbl">⚙️ 함수 (기계)</div>
+          <div class="v-val">인사하기( )</div>
+        </div>
+        <div class="v-arrow">→</div>
+        <div class="v-box v-out">
+          <div class="v-lbl">📤 나오는 것</div>
+          <div class="v-val">"안녕! 나는<br>민준이야!" 👋</div>
+        </div>
+      </div>
+      <div style="background:#FFFBEB; border-radius:14px; padding:14px 20px; margin-top:18px; font-size:16px; color:#374151; text-align:center; line-height:1.8;">
+        재료를 넣으면 → 기계가 처리해서 → 결과가 나와요!<br>
+        <strong>엔트리의 "블록 묶음"이 바로 함수예요! 🎮</strong>
+      </div>
+    </div>
+
+    <!-- 왜 필요한가 -->
+    <div class="card">
+      <div class="card-title">🤷 함수가 없으면 어떻게 될까요?</div>
+      <div style="display:grid; grid-template-columns:1fr auto 1fr; gap:16px; align-items:start;">
+        <div style="background:#FEF2F2; border:2.5px solid #EF4444; border-radius:18px; padding:20px;">
+          <div style="font-family:'Jua',sans-serif; font-size:16px; color:#EF4444; margin-bottom:14px;">❌ 함수 없이…</div>
+          <div class="repeat-box">😩 민준한테 인사하기</div>
+          <div class="repeat-box">😩 지아한테 인사하기</div>
+          <div class="repeat-box">😩 현우한테 인사하기</div>
+          <div class="repeat-box">😩 서연한테 인사하기</div>
+          <div style="font-size:13px; color:#EF4444; font-weight:700; margin-top:8px;">→ 30명이면 30번 써야 해요! 😫</div>
+        </div>
+        <div style="font-size:36px; text-align:center; color:#D1D5DB; padding-top:40px;">→</div>
+        <div style="background:#EFF6FF; border:2.5px solid #3A86FF; border-radius:18px; padding:20px;">
+          <div style="font-family:'Jua',sans-serif; font-size:16px; color:#3A86FF; margin-bottom:14px;">✅ 함수 쓰면!</div>
+          <div class="func-btn">⚙️ 인사하기( ) 버튼 만들기</div>
+          <div class="func-call">▶ 민준 인사!</div>
+          <div class="func-call">▶ 지아 인사!</div>
+          <div class="func-call">▶ 현우 인사!</div>
+          <div class="func-call">▶ 서연 인사!</div>
+          <div style="font-size:13px; color:#3A86FF; font-weight:700; margin-top:8px;">→ 몇 명이든 버튼 하나로 OK! 😎</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 함수 만들기 -->
+    <div class="card">
+      <div class="card-title">🔧 함수는 이렇게 만들어요!</div>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; gap:16px; align-items:flex-start; background:#EFF6FF; border-radius:16px; padding:16px;">
+          <div style="background:#3A86FF; color:white; border-radius:50%; width:38px; height:38px; display:flex; align-items:center; justify-content:center; font-family:'Jua',sans-serif; font-size:18px; flex-shrink:0;">1</div>
+          <div>
+            <div style="font-family:'Jua',sans-serif; font-size:17px; margin-bottom:4px;">이름 정하기</div>
+            <div style="font-size:14px; color:#6B7280;">"인사하기", "점수계산" 같이 하는 일을 나타내는 이름을 붙여요!</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:16px; align-items:flex-start; background:#EFF6FF; border-radius:16px; padding:16px;">
+          <div style="background:#3A86FF; color:white; border-radius:50%; width:38px; height:38px; display:flex; align-items:center; justify-content:center; font-family:'Jua',sans-serif; font-size:18px; flex-shrink:0;">2</div>
+          <div>
+            <div style="font-family:'Jua',sans-serif; font-size:17px; margin-bottom:4px;">할 일 넣기</div>
+            <div style="font-size:14px; color:#6B7280;">버튼을 누르면 어떤 일을 할지 써요. 예) "안녕! 나는 ○○이야!" 출력</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:16px; align-items:flex-start; background:#E6FAF9; border-radius:16px; padding:16px;">
+          <div style="background:#2EC4B6; color:white; border-radius:50%; width:38px; height:38px; display:flex; align-items:center; justify-content:center; font-family:'Jua',sans-serif; font-size:18px; flex-shrink:0;">▶</div>
+          <div>
+            <div style="font-family:'Jua',sans-serif; font-size:17px; margin-bottom:4px;">버튼 누르기! (호출하기)</div>
+            <div style="font-size:14px; color:#6B7280;">이름을 부르면 → 자동으로 실행! → 결과가 쫘악 나와요 🎉</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 좋은 점 -->
+    <div class="card">
+      <div class="card-title">🎉 함수의 좋은 점!</div>
+      <div style="display:flex; gap:14px; flex-wrap:wrap; justify-content:center;">
+        <div style="background:#EFF6FF; color:#3A86FF; border-radius:50px; padding:14px 24px; font-size:16px; font-weight:800;">🔁 반복 코드가 줄어요</div>
+        <div style="background:#FFF7ED; color:#C2410C; border-radius:50px; padding:14px 24px; font-size:16px; font-weight:800;">🛠️ 고칠 때 한 곳만!</div>
+        <div style="background:#F5F3FF; color:#7C3AED; border-radius:50px; padding:14px 24px; font-size:16px; font-weight:800;">♻️ 여러 곳에서 재사용!</div>
+      </div>
+    </div>
+
+    <!-- 퀴즈 -->
+    <div class="card" style="border:2.5px solid #3A86FF;">
+      <div class="card-title">🧠 퀴즈! 맞혀봐요!</div>
+      <p style="font-size:17px; font-weight:800; margin-bottom:16px; color:#374151;">
+        👉 "인사하기( )" 함수를 만들어두면 좋은 점은?
+      </p>
+      <div class="quiz-wrap" id="q3">
+        <button class="quiz-btn" onclick="checkQ('q3',this,false)">➊ 컴퓨터가 더 빨라진다</button>
+        <button class="quiz-btn" onclick="checkQ('q3',this,true)">➋ 같은 코드를 반복해서 쓰지 않아도 된다</button>
+        <button class="quiz-btn" onclick="checkQ('q3',this,false)">➌ 인터넷이 빨라진다</button>
+      </div>
+      <div id="q3-result" class="quiz-result"></div>
+    </div>
+
+    <div class="center" style="padding-top:8px;">
+      <button class="bigbtn btn-purple" onclick="go('summary')">🏆 마지막: 정리하기 →</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════ SUMMARY ══════════════ -->
+<div id="summary" class="page" style="background:linear-gradient(135deg,#FFFBF5,#EFF6FF);">
+  <div class="wrap">
+    <div class="center">
+      <span class="badge" style="background:#F5F3FF; color:#7C3AED; border:2px solid #8B5CF6;">🏆 마무리</span>
+      <div class="page-title">오늘 배운 것 정리! 🎉</div>
+      <p class="page-desc">변수, 리스트, 함수 — 세 가지만 알면<br>여러분도 진짜 코딩 할 수 있어요!</p>
+    </div>
+
+    <div class="sum-grid">
+      <div class="sum-card sc-v">
+        <div class="sc-emoji">📦</div>
+        <div class="sc-title">변수</div>
+        <div style="font-size:15px; color:#9CA3AF; margin-bottom:4px;">한 마디로?</div>
+        <div class="sc-keyword">마법 상자</div>
+        <ul class="sc-list">
+          <li>정보를 하나 저장해요</li>
+          <li>이름 = 값 형태로 만들어요</li>
+          <li>한글 이름도 OK (엔트리)</li>
+        </ul>
+      </div>
+      <div class="sum-card sc-l">
+        <div class="sc-emoji">🗃️</div>
+        <div class="sc-title">리스트</div>
+        <div style="font-size:15px; color:#9CA3AF; margin-bottom:4px;">한 마디로?</div>
+        <div class="sc-keyword">칸칸이 상자</div>
+        <ul class="sc-list">
+          <li>정보를 여러 개 저장해요</li>
+          <li>1번부터 번호로 꺼내요 (엔트리)</li>
+          <li>추가·삭제·개수 세기 가능!</li>
+        </ul>
+      </div>
+      <div class="sum-card sc-f">
+        <div class="sc-emoji">⚙️</div>
+        <div class="sc-title">함수</div>
+        <div style="font-size:15px; color:#9CA3AF; margin-bottom:4px;">한 마디로?</div>
+        <div class="sc-keyword">마법 버튼</div>
+        <ul class="sc-list">
+          <li>같은 일을 반복할 때 써요</li>
+          <li>이름 붙여서 버튼처럼 사용</li>
+          <li>코드가 짧고 깔끔해져요!</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 셋을 합치면 -->
+    <div class="card" style="margin-bottom:28px;">
+      <div class="card-title center" style="justify-content:center;">🌟 셋을 합치면? 진짜 프로그램!</div>
+      <div style="display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap;">
+        <div style="background:#FFF0E8; border:2.5px solid #FF6B35; border-radius:18px; padding:18px 22px; text-align:center; min-width:120px;">
+          <div style="font-size:30px; margin-bottom:6px;">📦</div>
+          <div style="font-family:'Jua',sans-serif; font-size:17px; color:#FF6B35;">변수</div>
+          <div style="font-size:13px; color:#9CA3AF; margin-top:4px;">반 이름 저장</div>
+        </div>
+        <div style="font-size:28px; color:#D1D5DB;">+</div>
+        <div style="background:#E6FAF9; border:2.5px solid #2EC4B6; border-radius:18px; padding:18px 22px; text-align:center; min-width:120px;">
+          <div style="font-size:30px; margin-bottom:6px;">🗃️</div>
+          <div style="font-family:'Jua',sans-serif; font-size:17px; color:#2EC4B6;">리스트</div>
+          <div style="font-size:13px; color:#9CA3AF; margin-top:4px;">친구 목록</div>
+        </div>
+        <div style="font-size:28px; color:#D1D5DB;">+</div>
+        <div style="background:#EEF4FF; border:2.5px solid #3A86FF; border-radius:18px; padding:18px 22px; text-align:center; min-width:120px;">
+          <div style="font-size:30px; margin-bottom:6px;">⚙️</div>
+          <div style="font-family:'Jua',sans-serif; font-size:17px; color:#3A86FF;">함수</div>
+          <div style="font-size:13px; color:#9CA3AF; margin-top:4px;">인사 버튼</div>
+        </div>
+        <div style="font-size:28px; color:#D1D5DB;">=</div>
+        <div style="background:#F5F3FF; border:2.5px solid #8B5CF6; border-radius:18px; padding:18px 22px; text-align:center; min-width:120px;">
+          <div style="font-size:30px; margin-bottom:6px;">🏫</div>
+          <div style="font-family:'Jua',sans-serif; font-size:17px; color:#8B5CF6;">완성!</div>
+          <div style="font-size:13px; color:#9CA3AF; margin-top:4px;">학급 프로그램</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="final-banner">
+      🎉 대단해요! 세 가지를 다 배웠어요!<br>
+      여러분도 이제 코딩을 할 수 있어요! 👏
+    </div>
+
+    <div class="center" style="margin-top:28px;">
+      <button class="bigbtn btn-gray" onclick="go('home')">🏠 처음으로 돌아가기</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- PROGRESS BAR -->
+<div class="prog-bar">
+  <div class="ps ps-v" onclick="go('variable')">📦 변수</div>
+  <div class="ps-sep">›</div>
+  <div class="ps ps-l" onclick="go('list')">🗃️ 리스트</div>
+  <div class="ps-sep">›</div>
+  <div class="ps ps-f" onclick="go('func')">⚙️ 함수</div>
+  <div class="ps-sep">›</div>
+  <div class="ps ps-s" onclick="go('summary')">🏆 정리</div>
+</div>
+
+<script>
+const pages  = ['home','variable','list','func','summary'];
+const tabCls = { home:'tab-h', variable:'tab-v', list:'tab-l', func:'tab-f', summary:'tab-s' };
+const stepCls= { variable:'ps-v', list:'ps-l', func:'ps-f', summary:'ps-s' };
+const visited= new Set(['home']);
+
+function go(id) {
+  pages.forEach(p => {
+    document.getElementById(p).classList.remove('on');
+    document.querySelector('.'+tabCls[p]).classList.remove('on');
+  });
+  document.getElementById(id).classList.add('on');
+  document.querySelector('.'+tabCls[id]).classList.add('on');
+  visited.add(id);
+  document.querySelectorAll('.ps').forEach(el => el.classList.remove('done'));
+  visited.forEach(v => {
+    const c = stepCls[v];
+    if (c) document.querySelector('.'+c).classList.add('done');
+  });
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+// 퀴즈 함수
+function checkQ(qId, btn, isCorrect) {
+  const wrap = document.getElementById(qId);
+  const btns = wrap.querySelectorAll('.quiz-btn');
+  btns.forEach(b => { b.disabled = true; b.style.cursor='default'; });
+  const result = document.getElementById(qId+'-result');
+
+  if (isCorrect) {
+    btn.classList.add('correct');
+    result.textContent = '🎉 정답이에요! 완전 잘했어요!';
+    result.className = 'quiz-result show qr-ok';
+  } else {
+    btn.classList.add('wrong');
+    result.textContent = '😅 아쉬워요! 다시 한번 생각해봐요!';
+    result.className = 'quiz-result show qr-no';
+    // 정답 표시
+    btns.forEach(b => {
+      if (b.onclick.toString().includes('true')) b.classList.add('correct');
+    });
+  }
+}
+</script>
+</body>
+</html>
