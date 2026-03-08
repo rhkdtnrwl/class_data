@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🤖 컴퓨터 친구를 만나요!</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sky: #E8F4FD;
+  --yellow: #FFE566;
+  --orange: #FF8C42;
+  --pink: #FF6B9D;
+  --green: #4ECDC4;
+  --blue: #45B7D1;
+  --purple: #A78BFA;
+  --red: #FF6B6B;
+  --dark: #2D3748;
+  --white: #FFFDF7;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Gaegu', cursive;
+  background: var(--sky);
+  overflow: hidden;
+  height: 100vh; width: 100vw;
+  cursor: none;
+}
+
+/* ── 커스텀 커서 ── */
+#cursor {
+  position:fixed; z-index:9999; pointer-events:none;
+  width:32px; height:32px; margin:-16px 0 0 -16px;
+  font-size:26px; transition:transform .1s;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+/* ── 배경 구름/별 ── */
+#bg-wrap {
+  position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none;
+}
+.cloud {
+  position:absolute; font-size:40px; opacity:.35;
+  animation:floatCloud linear infinite;
+}
+.star-bg {
+  position:absolute; font-size:16px; opacity:.5;
+  animation:twinkle 2s ease-in-out infinite;
+}
+
+/* ── DECK ── */
+#deck { position:relative; z-index:1; width:100vw; height:100vh; overflow:hidden; }
+
+.slide {
+  position:absolute; inset:0;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:28px 48px;
+  opacity:0; pointer-events:none;
+  transition: opacity .4s ease, transform .4s ease;
+  transform: scale(.96) translateY(16px);
+}
+.slide.active { opacity:1; pointer-events:all; transform:scale(1) translateY(0); }
+.slide.exit   { opacity:0; transform:scale(1.04) translateY(-16px); }
+
+/* ── NAV ── */
+#nav {
+  position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+  z-index:100;
+  display:flex; gap:10px; align-items:center;
+  background:rgba(255,255,255,0.75);
+  backdrop-filter:blur(12px);
+  border:3px solid rgba(255,140,66,.35);
+  border-radius:50px; padding:8px 18px;
+  box-shadow:0 4px 20px rgba(255,140,66,.2);
+}
+#nav button {
+  background:none; border:none; cursor:pointer;
+  font-size:26px; transition:all .2s; padding:2px 6px;
+}
+#nav button:hover { transform:scale(1.25); }
+#slide-counter {
+  font-family:'Jua',sans-serif; font-size:16px;
+  color:var(--orange); min-width:52px; text-align:center; font-weight:900;
+}
+.dot-row { display:flex; gap:6px; align-items:center; }
+.dot {
+  width:10px; height:10px; border-radius:50%;
+  background:rgba(255,140,66,.25); cursor:pointer; transition:all .3s;
+  border:2px solid rgba(255,140,66,.4);
+}
+.dot.on { background:var(--orange); width:24px; border-radius:5px; border-color:var(--orange); }
+
+/* ── 슬라이드 번호 배지 ── */
+.slide-badge {
+  position:absolute; top:22px; right:28px;
+  font-family:'Jua',sans-serif; font-size:13px;
+  color:rgba(45,55,72,.3); letter-spacing:1px;
+}
+
+/* ── 말풍선 카드 ── */
+.bubble {
+  background: white;
+  border-radius:28px;
+  border: 3px solid;
+  padding: 20px 28px;
+  position:relative;
+  box-shadow: 4px 6px 0 rgba(0,0,0,.08);
+}
+.bubble::after {
+  content:'';
+  position:absolute; bottom:-18px; left:40px;
+  border:10px solid transparent;
+  border-top-color: white;
+}
+
+/* ── 공통 텍스트 ── */
+.big-title {
+  font-family:'Jua',sans-serif;
+  font-size:clamp(34px,6vw,72px);
+  text-align:center; line-height:1.15; margin-bottom:10px;
+  animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+.medium-title {
+  font-family:'Jua',sans-serif;
+  font-size:clamp(22px,4vw,44px);
+  text-align:center; line-height:1.3; margin-bottom:8px;
+  animation:popIn .5s cubic-bezier(.34,1.56,.64,1) .1s both;
+}
+.body-text {
+  font-size:clamp(16px,2.2vw,24px); line-height:1.8;
+  color:var(--dark); text-align:center;
+  animation:fadeUp .5s ease .2s both;
+}
+
+/* ════════════
+   SLIDE 0 - 영상
+════════════ */
+.s0-bg { background:linear-gradient(160deg,#FFF9E6 0%,#FFF0F5 50%,#E8F4FD 100%); }
+
+/* ════════════
+   SLIDE 1 - 타이틀
+════════════ */
+.s1-bg { background:linear-gradient(160deg,#E8F4FD 0%,#FFF0F5 100%); }
+.robot-big {
+  font-size:100px; display:block; margin-bottom:10px;
+  animation:bounce 2s ease-in-out infinite, popIn .6s cubic-bezier(.34,1.56,.64,1) both;
+}
+.rainbow-title {
+  font-family:'Jua',sans-serif;
+  font-size:clamp(38px,7vw,82px);
+  text-align:center; line-height:1.1;
+  background:linear-gradient(135deg,#FF6B6B,#FF8C42,#FFE566,#4ECDC4,#45B7D1,#A78BFA);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+  animation:popIn .6s cubic-bezier(.34,1.56,.64,1) .15s both;
+  filter:drop-shadow(0 3px 8px rgba(255,140,66,.25));
+}
+.tag-row {
+  display:flex; gap:10px; flex-wrap:wrap; justify-content:center;
+  margin-top:18px; animation:fadeUp .5s ease .5s both;
+}
+.tag {
+  background:white; border-radius:50px; padding:8px 22px;
+  font-family:'Jua',sans-serif; font-size:17px;
+  border:3px solid; box-shadow:3px 4px 0 rgba(0,0,0,.07);
+  transition:all .2s;
+}
+.tag:hover { transform:translateY(-4px) rotate(-2deg); }
+.tag.t1{border-color:var(--orange);color:var(--orange);}
+.tag.t2{border-color:var(--pink);color:var(--pink);}
+.tag.t3{border-color:var(--green);color:var(--green);}
+.tag.t4{border-color:var(--purple);color:var(--purple);}
+
+/* ════════════
+   SLIDE 2 - 컴퓨터가 도와줘요
+════════════ */
+.s2-bg { background:linear-gradient(160deg,#FFF9E6 0%,#E8F4FD 100%); }
+.help-grid {
+  display:grid; grid-template-columns:repeat(3,1fr);
+  gap:14px; width:100%; max-width:780px; margin-top:16px;
+}
+.help-card {
+  background:white; border-radius:22px; padding:20px 14px; text-align:center;
+  border:3px solid; box-shadow:4px 5px 0 rgba(0,0,0,.07);
+  transition:all .25s; cursor:default; animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+.help-card:hover { transform:translateY(-8px) rotate(-1deg); }
+.help-card:nth-child(1){border-color:var(--orange); animation-delay:.1s;}
+.help-card:nth-child(2){border-color:var(--pink); animation-delay:.2s;}
+.help-card:nth-child(3){border-color:var(--green); animation-delay:.3s;}
+.help-card:nth-child(4){border-color:var(--blue); animation-delay:.4s;}
+.help-card:nth-child(5){border-color:var(--purple); animation-delay:.5s;}
+.help-card:nth-child(6){border-color:var(--yellow); animation-delay:.6s;}
+.hc-emoji { font-size:44px; display:block; margin-bottom:8px; }
+.hc-title {
+  font-family:'Jua',sans-serif; font-size:17px; margin-bottom:4px;
+}
+.help-card:nth-child(1) .hc-title{color:var(--orange);}
+.help-card:nth-child(2) .hc-title{color:var(--pink);}
+.help-card:nth-child(3) .hc-title{color:var(--green);}
+.help-card:nth-child(4) .hc-title{color:var(--blue);}
+.help-card:nth-child(5) .hc-title{color:var(--purple);}
+.help-card:nth-child(6) .hc-title{color:#D97706;}
+.hc-desc { font-size:13px; color:#666; line-height:1.6; }
+
+/* ════════════
+   SLIDE 3 - 코딩이 뭐예요?
+════════════ */
+.s3-bg { background:linear-gradient(160deg,#FFF0F5 0%,#E8F4FD 100%); }
+.coding-explain {
+  background:white; border-radius:28px; border:4px solid var(--orange);
+  padding:28px 36px; max-width:700px; width:100%; text-align:center;
+  box-shadow:6px 8px 0 rgba(255,140,66,.2);
+  animation:popIn .5s cubic-bezier(.34,1.56,.64,1) .15s both;
+}
+.order-row {
+  display:flex; align-items:center; gap:10px; justify-content:center;
+  margin:16px 0; flex-wrap:wrap;
+}
+.order-card {
+  background:linear-gradient(135deg,var(--orange),var(--pink));
+  color:white; border-radius:16px; padding:12px 18px;
+  font-family:'Jua',sans-serif; font-size:16px; text-align:center;
+  min-width:100px; box-shadow:3px 4px 0 rgba(0,0,0,.1);
+  animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+.order-card.c1{background:linear-gradient(135deg,#FF6B6B,#FF8C42); animation-delay:.2s;}
+.order-card.c2{background:linear-gradient(135deg,#FF8C42,#FFE566); animation-delay:.3s;}
+.order-card.c3{background:linear-gradient(135deg,#4ECDC4,#45B7D1); animation-delay:.4s;}
+.arrow-txt{font-size:24px; animation:popIn .4s ease .5s both;}
+.robot-chef {
+  font-size:72px; margin-bottom:10px;
+  animation:bounce 2.5s ease-in-out infinite, popIn .5s cubic-bezier(.34,1.56,.64,1) .1s both;
+}
+
+/* ════════════
+   SLIDE 4 - 우리 주변의 컴퓨터
+════════════ */
+.s4-bg { background:linear-gradient(160deg,#E8F4FD 0%,#FFF9E6 100%); }
+.around-grid {
+  display:grid; grid-template-columns:repeat(4,1fr);
+  gap:12px; width:100%; max-width:800px; margin-top:14px;
+}
+.around-card {
+  background:white; border-radius:20px; padding:18px 10px; text-align:center;
+  border:3px solid; box-shadow:3px 4px 0 rgba(0,0,0,.07);
+  transition:all .3s; cursor:pointer; animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+.around-card:hover { transform:scale(1.1) rotate(3deg); }
+.around-card:nth-child(1){border-color:var(--orange); animation-delay:.1s;}
+.around-card:nth-child(2){border-color:var(--pink); animation-delay:.15s;}
+.around-card:nth-child(3){border-color:var(--green); animation-delay:.2s;}
+.around-card:nth-child(4){border-color:var(--blue); animation-delay:.25s;}
+.around-card:nth-child(5){border-color:var(--purple); animation-delay:.3s;}
+.around-card:nth-child(6){border-color:var(--red); animation-delay:.35s;}
+.around-card:nth-child(7){border-color:var(--yellow); animation-delay:.4s;}
+.around-card:nth-child(8){border-color:var(--green); animation-delay:.45s;}
+.ac-emoji {font-size:38px; display:block; margin-bottom:6px;}
+.ac-name {font-family:'Jua',sans-serif; font-size:14px; color:var(--dark);}
+
+/* ════════════
+   SLIDE 5 - OX 퀴즈
+════════════ */
+.s5-bg { background:linear-gradient(160deg,#FFF9E6 0%,#FFF0F5 100%); }
+.quiz-box {
+  background:white; border-radius:28px; padding:30px 36px;
+  max-width:700px; width:100%; text-align:center;
+  border:4px solid var(--purple); box-shadow:6px 8px 0 rgba(167,139,250,.25);
+  animation:popIn .5s cubic-bezier(.34,1.56,.64,1) .1s both;
+}
+.quiz-badge-kid {
+  background:linear-gradient(135deg,var(--purple),var(--pink));
+  color:white; border-radius:50px; padding:6px 20px;
+  font-family:'Jua',sans-serif; font-size:15px;
+  display:inline-block; margin-bottom:16px;
+  box-shadow:3px 4px 0 rgba(167,139,250,.3);
+}
+.quiz-q-kid {
+  font-family:'Jua',sans-serif;
+  font-size:clamp(18px,3vw,28px); line-height:1.55; margin-bottom:24px;
+  color:var(--dark);
+}
+.ox-row-kid { display:flex; gap:18px; justify-content:center; }
+.ox-btn-kid {
+  width:100px; height:100px; border-radius:20px; border:none;
+  font-size:48px; cursor:pointer; transition:all .25s;
+  box-shadow:4px 5px 0 rgba(0,0,0,.1);
+}
+.ox-btn-kid.o-btn { background:#E8FAF0; border:3px solid var(--green); }
+.ox-btn-kid.x-btn { background:#FFF0F5; border:3px solid var(--pink); }
+.ox-btn-kid:hover:not(:disabled) { transform:scale(1.18) rotate(-5deg); }
+.ox-btn-kid.correct { background:#A7F3D0; box-shadow:0 0 24px rgba(78,205,196,.6); transform:scale(1.2); }
+.ox-btn-kid.wrong   { opacity:.4; transform:scale(.9); }
+.q-result { margin-top:16px; font-family:'Jua',sans-serif; font-size:22px; min-height:28px; }
+.q-result.ok  { color:var(--green); }
+.q-result.no  { color:var(--pink); }
+.q-hint { margin-top:6px; font-size:15px; color:#888; min-height:20px; line-height:1.7; }
+
+/* ════════════
+   SLIDE 6 - 손들기
+════════════ */
+.s6-bg { background:linear-gradient(160deg,#E8F4FD 0%,#FFF9E6 100%); }
+.think-q-kid {
+  font-family:'Jua',sans-serif;
+  font-size:clamp(22px,4vw,40px);
+  text-align:center; line-height:1.4; margin-bottom:20px;
+  color:var(--dark); animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+.hand-grid-kid {
+  display:grid; grid-template-columns:repeat(4,1fr);
+  gap:14px; width:100%; max-width:720px;
+}
+.hand-card-kid {
+  background:white; border-radius:22px; padding:18px 12px; text-align:center;
+  border:3px solid; box-shadow:4px 5px 0 rgba(0,0,0,.07);
+  cursor:pointer; transition:all .25s; user-select:none;
+  animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+.hand-card-kid:nth-child(1){border-color:var(--orange); animation-delay:.1s;}
+.hand-card-kid:nth-child(2){border-color:var(--pink); animation-delay:.15s;}
+.hand-card-kid:nth-child(3){border-color:var(--green); animation-delay:.2s;}
+.hand-card-kid:nth-child(4){border-color:var(--blue); animation-delay:.25s;}
+.hand-card-kid.raised {
+  transform:scale(1.1) translateY(-8px) rotate(-3deg);
+  box-shadow:6px 8px 0 rgba(0,0,0,.12);
+}
+.hand-card-kid:nth-child(1).raised{background:#FFF3E8;}
+.hand-card-kid:nth-child(2).raised{background:#FFF0F5;}
+.hand-card-kid:nth-child(3).raised{background:#E8FAF5;}
+.hand-card-kid:nth-child(4).raised{background:#E8F4FD;}
+.hk-emoji { font-size:40px; display:block; margin-bottom:6px; transition:transform .3s; }
+.hand-card-kid.raised .hk-emoji { transform:translateY(-6px) rotate(-10deg); animation:wiggle .4s ease; }
+.hk-label { font-family:'Jua',sans-serif; font-size:14px; color:var(--dark); }
+.hk-count { font-family:'Jua',sans-serif; font-size:22px; min-height:28px; margin-top:4px; }
+.hand-card-kid:nth-child(1) .hk-count{color:var(--orange);}
+.hand-card-kid:nth-child(2) .hk-count{color:var(--pink);}
+.hand-card-kid:nth-child(3) .hk-count{color:var(--green);}
+.hand-card-kid:nth-child(4) .hk-count{color:var(--blue);}
+.think-total-kid {
+  margin-top:14px; font-family:'Jua',sans-serif; font-size:20px;
+  color:var(--orange); text-align:center; min-height:28px;
+}
+
+/* ════════════
+   SLIDE 7 - 코딩 시작!
+════════════ */
+.s7-bg { background:linear-gradient(160deg,#FFF0F5 0%,#E8F4FD 50%,#FFF9E6 100%); }
+.coding-cards {
+  display:grid; grid-template-columns:repeat(3,1fr);
+  gap:16px; width:100%; max-width:780px; margin-top:14px;
+}
+.coding-card {
+  background:white; border-radius:22px; padding:22px 16px; text-align:center;
+  border:3px solid; box-shadow:5px 6px 0 rgba(0,0,0,.08);
+  transition:all .3s; cursor:default; animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+.coding-card:hover { transform:translateY(-8px) scale(1.03); }
+.coding-card:nth-child(1){border-color:var(--orange); animation-delay:.1s;}
+.coding-card:nth-child(2){border-color:var(--green); animation-delay:.2s;}
+.coding-card:nth-child(3){border-color:var(--blue); animation-delay:.3s;}
+.cc-emoji { font-size:46px; display:block; margin-bottom:10px; animation:float 3s ease-in-out infinite; }
+.cc-title { font-family:'Jua',sans-serif; font-size:19px; margin-bottom:8px; line-height:1.4; }
+.coding-card:nth-child(1) .cc-title{color:var(--orange);}
+.coding-card:nth-child(2) .cc-title{color:var(--green);}
+.coding-card:nth-child(3) .cc-title{color:var(--blue);}
+.cc-desc { font-size:14px; color:#666; line-height:1.7; }
+.coding-banner {
+  width:100%; max-width:780px; margin-top:16px;
+  background:linear-gradient(135deg,var(--orange),var(--pink),var(--purple));
+  border-radius:22px; padding:16px 28px;
+  display:flex; align-items:center; justify-content:center; gap:14px;
+  box-shadow:5px 6px 0 rgba(255,140,66,.3);
+  animation:popIn .5s cubic-bezier(.34,1.56,.64,1) .5s both;
+  cursor:pointer; transition:all .3s;
+}
+.coding-banner:hover { transform:scale(1.03) rotate(-0.5deg); }
+.coding-banner-text {
+  font-family:'Jua',sans-serif;
+  font-size:clamp(16px,2.2vw,22px); color:white; text-align:center; line-height:1.5;
+}
+
+/* ════════════
+   SLIDE 8 - 마무리
+════════════ */
+.s8-bg { background:linear-gradient(160deg,#FFF9E6 0%,#FFF0F5 50%,#E8F4FD 100%); }
+.end-robot { font-size:80px; margin-bottom:10px; animation:bounce 2s ease-in-out infinite, popIn .6s cubic-bezier(.34,1.56,.64,1) both; }
+.end-title-kid {
+  font-family:'Jua',sans-serif;
+  font-size:clamp(32px,6vw,70px);
+  text-align:center; line-height:1.15;
+  background:linear-gradient(135deg,#FF6B6B,#FF8C42,#FFE566,#4ECDC4,#45B7D1,#A78BFA);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+  animation:popIn .6s cubic-bezier(.34,1.56,.64,1) .2s both;
+  margin-bottom:12px;
+}
+.end-cards-kid {
+  display:flex; gap:14px; flex-wrap:wrap;
+  justify-content:center; animation:fadeUp .6s ease .4s both;
+}
+.end-card-kid {
+  background:white; border:3px solid; border-radius:18px;
+  padding:14px 22px; text-align:center; min-width:140px;
+  box-shadow:4px 5px 0 rgba(0,0,0,.08);
+  transition:all .3s;
+}
+.end-card-kid:hover { transform:translateY(-6px) rotate(-2deg); }
+.end-card-kid:nth-child(1){border-color:var(--orange);}
+.end-card-kid:nth-child(2){border-color:var(--pink);}
+.end-card-kid:nth-child(3){border-color:var(--green);}
+.end-card-kid:nth-child(4){border-color:var(--blue);}
+.eck-emoji { font-size:32px; display:block; margin-bottom:6px; }
+.eck-text { font-family:'Jua',sans-serif; font-size:15px; color:var(--dark); }
+.end-msg {
+  margin-top:16px; padding:14px 24px;
+  background:linear-gradient(135deg,var(--yellow),var(--orange));
+  border-radius:20px; font-family:'Jua',sans-serif;
+  font-size:clamp(16px,2vw,22px); color:white; text-align:center;
+  box-shadow:4px 5px 0 rgba(255,140,66,.35);
+  animation:popIn .6s cubic-bezier(.34,1.56,.64,1) .6s both;
+}
+
+/* ── 애니메이션 ── */
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
+@keyframes float  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes popIn  { from{opacity:0;transform:scale(.7)} to{opacity:1;transform:scale(1)} }
+@keyframes wiggle { 0%{transform:rotate(0)} 25%{transform:rotate(-15deg)} 75%{transform:rotate(10deg)} 100%{transform:rotate(0)} }
+@keyframes twinkle{ 0%,100%{opacity:.3;transform:scale(1)} 50%{opacity:.7;transform:scale(1.3)} }
+@keyframes floatCloud{ from{transform:translateX(-120px)} to{transform:translateX(110vw)} }
+@keyframes starPop{
+  0%{transform:scale(0) rotate(-20deg);opacity:0}
+  70%{transform:scale(1.3);opacity:1}
+  100%{transform:scale(1);opacity:0}
+}
+@keyframes confettiFall{
+  from{transform:translateY(-50px) rotate(0deg);opacity:1}
+  to{transform:translateY(110vh) rotate(720deg);opacity:0}
+}
+</style>
+</head>
+<body>
+
+<!-- 커서 -->
+<div id="cursor">⭐</div>
+
+<!-- 배경 장식 -->
+<div id="bg-wrap"></div>
+
+<div id="deck">
+
+<!-- ── SLIDE 0: 영상 ── -->
+<div class="slide s0-bg" data-slide="0">
+  <div class="slide-badge">00 / 09</div>
+  <div style="font-family:'Jua',sans-serif;font-size:14px;letter-spacing:2px;color:var(--orange);margin-bottom:10px;animation:fadeUp .4s ease both;">🎬 오늘의 도입 영상</div>
+  <div class="medium-title" style="color:var(--dark);">컴퓨터 친구, 어떤 일을 할까요?</div>
+
+  <div style="display:flex;flex-direction:column;align-items:center;gap:16px;animation:popIn .6s cubic-bezier(.34,1.56,.64,1) .25s both;">
+    <!-- 영상 버튼 -->
+    <a href="https://www.youtube.com/watch?v=AoeMfuNO9sE" target="_blank"
+      style="display:inline-flex;align-items:center;gap:16px;background:linear-gradient(135deg,#FF6B6B,#FF4444);border-radius:22px;padding:20px 40px;text-decoration:none;box-shadow:5px 6px 0 rgba(255,107,107,.35);transition:all .25s;border:3px solid rgba(255,255,255,.4);"
+      onmouseover="this.style.transform='scale(1.06) rotate(-1deg)';this.style.boxShadow='6px 8px 0 rgba(255,107,107,.5)'"
+      onmouseout="this.style.transform='scale(1) rotate(0)';this.style.boxShadow='5px 6px 0 rgba(255,107,107,.35)'"
+    >
+      <span style="font-size:54px;">▶</span>
+      <div>
+        <div style="font-family:'Jua',sans-serif;font-size:22px;color:white;margin-bottom:4px;">유튜브에서 영상 보기</div>
+        <div style="font-size:14px;color:rgba(255,255,255,.8);">클릭하면 새 창으로 열려요! 😊</div>
+      </div>
+    </a>
+
+    <!-- 영상 설명 -->
+    <div style="background:white;border:3px solid var(--orange);border-radius:18px;padding:12px 22px;display:inline-block;box-shadow:4px 5px 0 rgba(255,140,66,.2);">
+      <div style="font-family:'Jua',sans-serif;font-size:14px;color:var(--orange);margin-bottom:4px;">📺 오늘 볼 영상</div>
+      <div style="font-size:15px;color:var(--dark);font-weight:700;">
+        🤖 컴퓨터야, 넌 무슨 일을 하니? — 어린이 AI & 코딩 이야기
+      </div>
+      <div style="font-size:12px;color:#888;margin-top:4px;">youtu.be/AoeMfuNO9sE</div>
+    </div>
+
+    <!-- 대안 영상 안내 -->
+    <div style="background:rgba(255,255,255,.7);border:2px dashed var(--green);border-radius:14px;padding:10px 18px;max-width:500px;text-align:center;">
+      <div style="font-size:13px;color:var(--green);font-family:'Jua',sans-serif;margin-bottom:4px;">💡 영상이 안 보이면?</div>
+      <div style="font-size:12px;color:#666;">유튜브에서 <strong>"소프트웨어야 놀자 컴퓨터"</strong> 검색!<br>BBC 제작 어린이 코딩 영상이에요 🎉</div>
+    </div>
+  </div>
+
+  <div style="margin-top:18px;font-family:'Jua',sans-serif;font-size:16px;color:var(--orange);animation:fadeUp .5s ease .5s both;">
+    🎬 영상을 본 후 느낀 점을 이야기해봐요!
+  </div>
+</div>
+
+<!-- ── SLIDE 1: 타이틀 ── -->
+<div class="slide s1-bg" data-slide="1">
+  <div class="slide-badge">01 / 09</div>
+  <span class="robot-big">🤖</span>
+  <div style="font-family:'Jua',sans-serif;font-size:15px;letter-spacing:2px;color:var(--orange);margin-bottom:8px;animation:fadeUp .5s ease .1s both;">✨ 1학년·2학년 컴퓨터 첫걸음</div>
+  <div class="rainbow-title">컴퓨터 친구를<br>만나요!</div>
+  <div class="tag-row">
+    <div class="tag t1">🖥️ 컴퓨터</div>
+    <div class="tag t2">🎨 코딩</div>
+    <div class="tag t3">🤖 로봇</div>
+    <div class="tag t4">🌈 미래</div>
+  </div>
+</div>
+
+<!-- ── SLIDE 2: 컴퓨터가 도와줘요 ── -->
+<div class="slide s2-bg" data-slide="2">
+  <div class="slide-badge">02 / 09</div>
+  <div class="medium-title" style="color:var(--dark);">컴퓨터 친구는 무엇을 해줄까요? 🤔</div>
+  <div class="body-text" style="margin-bottom:12px;color:#666;">우리 생활 곳곳에서 도와주고 있어요!</div>
+  <div class="help-grid">
+    <div class="help-card">
+      <span class="hc-emoji">📚</span>
+      <div class="hc-title">숙제 알려주기</div>
+      <div class="hc-desc">오늘 숙제가 뭔지<br>알려줘요!</div>
+    </div>
+    <div class="help-card">
+      <span class="hc-emoji">🗺️</span>
+      <div class="hc-title">길 찾아주기</div>
+      <div class="hc-desc">어디로 가야 하는지<br>알려줘요!</div>
+    </div>
+    <div class="help-card">
+      <span class="hc-emoji">🎵</span>
+      <div class="hc-title">음악 틀어주기</div>
+      <div class="hc-desc">좋아하는 노래를<br>찾아줘요!</div>
+    </div>
+    <div class="help-card">
+      <span class="hc-emoji">🎬</span>
+      <div class="hc-title">영상 보여주기</div>
+      <div class="hc-desc">재미있는 영상을<br>추천해줘요!</div>
+    </div>
+    <div class="help-card">
+      <span class="hc-emoji">🌤️</span>
+      <div class="hc-title">날씨 알려주기</div>
+      <div class="hc-desc">오늘 우산 필요한지<br>알려줘요!</div>
+    </div>
+    <div class="help-card">
+      <span class="hc-emoji">🤸</span>
+      <div class="hc-title">공부 도와주기</div>
+      <div class="hc-desc">어려운 문제를 쉽게<br>설명해줘요!</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SLIDE 3: 코딩이 뭐예요? ── -->
+<div class="slide s3-bg" data-slide="3">
+  <div class="slide-badge">03 / 09</div>
+  <span class="robot-chef">👨‍🍳</span>
+  <div class="medium-title" style="color:var(--dark);">코딩이 뭐예요? 🍳</div>
+  <div class="coding-explain">
+    <div class="body-text" style="font-size:18px;margin-bottom:14px;">
+      코딩이란 <strong style="color:var(--orange);">컴퓨터에게 일을 시키는 것</strong>이에요!<br>
+      요리사가 레시피를 적듯이,<br>컴퓨터에게 <strong style="color:var(--pink);">순서대로 명령</strong>을 적어요!
+    </div>
+    <div class="order-row">
+      <div class="order-card c1">① 재료 준비<br>(계획하기)</div>
+      <div class="arrow-txt">→</div>
+      <div class="order-card c2">② 순서 정하기<br>(명령 쓰기)</div>
+      <div class="arrow-txt">→</div>
+      <div class="order-card c3">③ 요리 완성!<br>(실행!)</div>
+    </div>
+    <div style="margin-top:12px;font-size:16px;color:#666;">
+      🎮 게임도, 📱 앱도, 🤖 로봇도 모두 코딩으로 만들어요!
+    </div>
+  </div>
+</div>
+
+<!-- ── SLIDE 4: 우리 주변의 컴퓨터 ── -->
+<div class="slide s4-bg" data-slide="4">
+  <div class="slide-badge">04 / 09</div>
+  <div class="medium-title" style="color:var(--dark);">우리 주변에 컴퓨터가 숨어있어요! 🔍</div>
+  <div class="body-text" style="margin-bottom:12px;color:#666;">찾아볼까요? 카드를 클릭해봐요!</div>
+  <div class="around-grid">
+    <div class="around-card" onclick="wiggleCard(this)">
+      <span class="ac-emoji">📱</span><div class="ac-name">스마트폰</div>
+    </div>
+    <div class="around-card" onclick="wiggleCard(this)">
+      <span class="ac-emoji">📺</span><div class="ac-name">TV</div>
+    </div>
+    <div class="around-card" onclick="wiggleCard(this)">
+      <span class="ac-emoji">🎮</span><div class="ac-name">게임기</div>
+    </div>
+    <div class="around-card" onclick="wiggleCard(this)">
+      <span class="ac-emoji">🚗</span><div class="ac-name">자동차</div>
+    </div>
+    <div class="around-card" onclick="wiggleCard(this)">
+      <span class="ac-emoji">🤖</span><div class="ac-name">청소 로봇</div>
+    </div>
+    <div class="around-card" onclick="wiggleCard(this)">
+      <span class="ac-emoji">🎛️</span><div class="ac-name">에어컨</div>
+    </div>
+    <div class="around-card" onclick="wiggleCard(this)">
+      <span class="ac-emoji">🚦</span><div class="ac-name">신호등</div>
+    </div>
+    <div class="around-card" onclick="wiggleCard(this)">
+      <span class="ac-emoji">🏪</span><div class="ac-name">자판기</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SLIDE 5: OX 퀴즈 ── -->
+<div class="slide s5-bg" data-slide="5">
+  <div class="slide-badge">05 / 09</div>
+  <div class="medium-title" style="color:var(--dark);">🧠 퀴즈 타임!</div>
+  <div class="quiz-box">
+    <div class="quiz-badge-kid">QUIZ ⭐ OX 문제</div>
+    <div class="quiz-q-kid">
+      코딩은 컴퓨터에게<br>명령을 내리는 것이다!
+    </div>
+    <div class="ox-row-kid">
+      <button class="ox-btn-kid o-btn" onclick="kidOX(this,'o','o')">⭕</button>
+      <button class="ox-btn-kid x-btn" onclick="kidOX(this,'x','o')">❌</button>
+    </div>
+    <div class="q-result" id="q1-res"></div>
+    <div class="q-hint" id="q1-hint"></div>
+  </div>
+</div>
+
+<!-- ── SLIDE 6: 손들기 ── -->
+<div class="slide s6-bg" data-slide="6">
+  <div class="slide-badge">06 / 09</div>
+  <div class="think-q-kid">
+    컴퓨터 친구에게<br>무엇을 시키고 싶어요? 🙋
+  </div>
+  <div class="hand-grid-kid" id="hand-grid-kid">
+    <div class="hand-card-kid" onclick="kidRaise(this,0)">
+      <span class="hk-emoji">📚</span>
+      <div class="hk-label">숙제 도움</div>
+      <div class="hk-count" id="khc0"></div>
+    </div>
+    <div class="hand-card-kid" onclick="kidRaise(this,1)">
+      <span class="hk-emoji">🎮</span>
+      <div class="hk-label">게임 같이</div>
+      <div class="hk-count" id="khc1"></div>
+    </div>
+    <div class="hand-card-kid" onclick="kidRaise(this,2)">
+      <span class="hk-emoji">🎵</span>
+      <div class="hk-label">노래 틀기</div>
+      <div class="hk-count" id="khc2"></div>
+    </div>
+    <div class="hand-card-kid" onclick="kidRaise(this,3)">
+      <span class="hk-emoji">🧹</span>
+      <div class="hk-label">청소 대신</div>
+      <div class="hk-count" id="khc3"></div>
+    </div>
+  </div>
+  <div class="think-total-kid" id="think-total-kid"></div>
+  <button onclick="resetKidHands()" style="margin-top:10px;background:white;border:2px dashed var(--orange);border-radius:16px;padding:6px 16px;color:var(--orange);cursor:pointer;font-family:'Jua',sans-serif;font-size:13px;box-shadow:2px 3px 0 rgba(255,140,66,.2);">🔄 다시 시작</button>
+</div>
+
+<!-- ── SLIDE 7: 코딩 시작! ── -->
+<div class="slide s7-bg" data-slide="7">
+  <div class="slide-badge">07 / 09</div>
+  <div class="medium-title" style="color:var(--dark);">🎮 코딩으로 이런 걸 만들 수 있어요!</div>
+  <div class="coding-cards">
+    <div class="coding-card">
+      <span class="cc-emoji">🎮</span>
+      <div class="cc-title">내 손으로<br>게임 만들기!</div>
+      <div class="cc-desc">
+        좋아하는 게임을<br>직접 만들 수 있어요.<br>마인크래프트도<br>코딩으로 만들었어요! 🌍
+      </div>
+    </div>
+    <div class="coding-card">
+      <span class="cc-emoji">🤖</span>
+      <div class="cc-title">로봇 친구<br>만들기!</div>
+      <div class="cc-desc">
+        코딩을 배우면 로봇을<br>직접 움직일 수 있어요.<br>로봇이 내 친구가<br>되는 거예요! 💪
+      </div>
+    </div>
+    <div class="coding-card">
+      <span class="cc-emoji">🌈</span>
+      <div class="cc-title">상상을<br>현실로!</div>
+      <div class="cc-desc">
+        머릿속 아이디어를<br>실제로 만들 수 있어요.<br>무엇이든 코딩으로<br>만들 수 있어요! ✨
+      </div>
+    </div>
+  </div>
+  <div class="coding-banner" onclick="showConfetti()">
+    <span style="font-size:28px;animation:bounce 1.5s ease-in-out infinite;">🚀</span>
+    <div class="coding-banner-text">
+      코딩은 재미있는 놀이예요! 같이 해봐요!<br>
+      <span style="font-size:0.85em;opacity:.9;">오늘부터 나도 코딩 여행 출발! 🎉</span>
+    </div>
+    <span style="font-size:28px;animation:bounce 1.5s ease-in-out infinite .2s;">⭐</span>
+  </div>
+</div>
+
+<!-- ── SLIDE 8: 마무리 ── -->
+<div class="slide s8-bg" data-slide="8">
+  <div class="slide-badge">08 / 09</div>
+  <span class="end-robot">🌟</span>
+  <div class="end-title-kid">오늘 배운 것!</div>
+  <div class="end-cards-kid">
+    <div class="end-card-kid">
+      <span class="eck-emoji">🖥️</span>
+      <div class="eck-text">컴퓨터는<br>내 친구!</div>
+    </div>
+    <div class="end-card-kid">
+      <span class="eck-emoji">💬</span>
+      <div class="eck-text">코딩은<br>명령 내리기!</div>
+    </div>
+    <div class="end-card-kid">
+      <span class="eck-emoji">🎮</span>
+      <div class="eck-text">코딩으로<br>게임 만들기!</div>
+    </div>
+    <div class="end-card-kid">
+      <span class="eck-emoji">🚀</span>
+      <div class="eck-text">나도<br>코딩 가능!</div>
+    </div>
+  </div>
+  <div class="end-msg">
+    🎉 우리 모두 코딩 여행을 시작해봐요! 여러분이 미래를 만들어요! ✨
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<!-- NAV -->
+<div id="nav">
+  <button onclick="prevSlide()">◀</button>
+  <div class="dot-row" id="dots"></div>
+  <div id="slide-counter">1 / 9</div>
+  <button onclick="nextSlide()">▶</button>
+</div>
+
+<script>
+/* ── 커스텀 커서 ── */
+const cursors = ['⭐','🌈','✨','🎉','💫','🌟','🎈'];
+let cIdx=0;
+const curEl = document.getElementById('cursor');
+document.addEventListener('mousemove', e=>{
+  curEl.style.left = e.clientX+'px';
+  curEl.style.top  = e.clientY+'px';
+});
+document.addEventListener('click', ()=>{
+  cIdx = (cIdx+1)%cursors.length;
+  curEl.textContent = cursors[cIdx];
+  curEl.style.transform = 'scale(1.5) rotate(20deg)';
+  setTimeout(()=>curEl.style.transform='scale(1) rotate(0)', 200);
+});
+
+/* ── 배경 구름 + 별 ── */
+const bg = document.getElementById('bg-wrap');
+const cloudEmojis = ['☁️','🌤️','⛅'];
+for(let i=0;i<6;i++){
+  const c = document.createElement('div');
+  c.className='cloud';
+  c.textContent=cloudEmojis[Math.floor(Math.random()*cloudEmojis.length)];
+  const top  = 5+Math.random()*30;
+  const dur  = 18+Math.random()*18;
+  const delay= -Math.random()*20;
+  c.style.cssText=`top:${top}%;font-size:${30+Math.random()*25}px;animation-duration:${dur}s;animation-delay:${delay}s;`;
+  bg.appendChild(c);
+}
+const starEmojis=['⭐','✨','💫','🌟'];
+for(let i=0;i<14;i++){
+  const s=document.createElement('div');
+  s.className='star-bg';
+  s.textContent=starEmojis[Math.floor(Math.random()*starEmojis.length)];
+  s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${Math.random()*3}s;animation-duration:${1.5+Math.random()*2}s;`;
+  bg.appendChild(s);
+}
+
+/* ── 슬라이드 제어 ── */
+const slides=document.querySelectorAll('.slide');
+const total=slides.length;
+let current=0;
+
+const dotsEl=document.getElementById('dots');
+slides.forEach((_,i)=>{
+  const d=document.createElement('div');
+  d.className='dot'+(i===0?' on':'');
+  d.onclick=()=>goTo(i);
+  dotsEl.appendChild(d);
+});
+
+function goTo(n){
+  slides[current].classList.remove('active');
+  slides[current].classList.add('exit');
+  setTimeout(()=>slides[current].classList.remove('exit'),420);
+  current=(n+total)%total;
+  slides[current].classList.add('active');
+  document.getElementById('slide-counter').textContent=(current+1)+' / '+total;
+  document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('on',i===current));
+}
+function nextSlide(){ goTo(current+1); }
+function prevSlide(){ goTo(current-1); }
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' ') nextSlide();
+  if(e.key==='ArrowLeft') prevSlide();
+});
+slides[0].classList.add('active');
+
+/* ── 카드 흔들기 ── */
+function wiggleCard(el){
+  el.style.animation='none';
+  el.style.transform='scale(1.15) rotate(5deg)';
+  setTimeout(()=>el.style.transform='',300);
+  showMiniPop(el);
+}
+function showMiniPop(el){
+  const emojis=['🎉','⭐','✨','🌟','💫'];
+  const rect=el.getBoundingClientRect();
+  for(let i=0;i<3;i++){
+    const e=document.createElement('div');
+    e.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+    e.style.cssText=`position:fixed;z-index:999;pointer-events:none;font-size:22px;left:${rect.left+rect.width/2-10}px;top:${rect.top-10}px;animation:starPop .8s ease both;`;
+    document.body.appendChild(e);
+    setTimeout(()=>e.remove(),900);
+  }
+}
+
+/* ── 퀴즈 OX ── */
+function kidOX(btn,clicked,correct){
+  const btns=btn.closest('.ox-row-kid').querySelectorAll('.ox-btn-kid');
+  btns.forEach(b=>b.disabled=true);
+  const box=btn.closest('.quiz-box');
+  const res=box.querySelector('.q-result');
+  const hint=box.querySelector('.q-hint');
+  if(clicked===correct){
+    btn.classList.add('correct');
+    res.textContent='🎉 정답! 완전 잘했어요!'; res.className='q-result ok';
+    hint.textContent='맞아요! 코딩은 컴퓨터에게 명령을 내리는 거예요! ⭕';
+    showStars();
+  } else {
+    btn.classList.add('wrong');
+    btns.forEach(b=>{if(b!==btn)b.classList.add('correct');});
+    res.textContent='😅 아쉬워요~ 정답은 ⭕ 이에요!'; res.className='q-result no';
+    hint.textContent='코딩 = 컴퓨터에게 일하라고 명령하는 것!';
+  }
+}
+
+/* ── 별 폭발 ── */
+function showStars(){
+  const e=['⭐','✨','🌟','🎉','💫','🌈','🎈'];
+  for(let i=0;i<16;i++){
+    const el=document.createElement('div');
+    el.textContent=e[Math.floor(Math.random()*e.length)];
+    el.style.cssText=`position:fixed;z-index:999;pointer-events:none;font-size:${20+Math.random()*22}px;left:${10+Math.random()*80}vw;top:${10+Math.random()*75}vh;animation:starPop .8s ease ${i*.07}s both;`;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),2500);
+  }
+}
+
+/* ── 컨페티 ── */
+function showConfetti(){
+  const colors=['#FF6B6B','#FF8C42','#FFE566','#4ECDC4','#45B7D1','#A78BFA','#FF6B9D'];
+  const shapes=['⭐','🌈','🎉','✨','💫','🎈','🌟','❤️','🦋'];
+  for(let i=0;i<28;i++){
+    const el=document.createElement('div');
+    el.textContent=shapes[Math.floor(Math.random()*shapes.length)];
+    el.style.cssText=`position:fixed;z-index:999;pointer-events:none;font-size:${16+Math.random()*18}px;left:${Math.random()*100}vw;top:-40px;animation:confettiFall ${1.5+Math.random()*1.5}s ease ${i*.07}s both;`;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),3500);
+  }
+}
+
+/* ── 손들기 ── */
+const kidCounts=[0,0,0,0];
+function kidRaise(card,idx){
+  const was=card.classList.contains('raised');
+  if(was){
+    card.classList.remove('raised');
+    kidCounts[idx]=Math.max(0,kidCounts[idx]-1);
+  } else {
+    card.classList.add('raised');
+    kidCounts[idx]++;
+    showMiniPop(card);
+  }
+  document.getElementById('khc'+idx).textContent=kidCounts[idx]||'';
+  const t=kidCounts.reduce((a,b)=>a+b,0);
+  document.getElementById('think-total-kid').textContent=t>0?`모두 ${t}명이 골랐어요! 🎉`:'';
+}
+function resetKidHands(){
+  kidCounts.fill(0);
+  document.querySelectorAll('.hand-card-kid').forEach(c=>c.classList.remove('raised'));
+  for(let i=0;i<4;i++) document.getElementById('khc'+i).textContent='';
+  document.getElementById('think-total-kid').textContent='';
+}
+</script>
+</body>
+</html>
